@@ -1088,15 +1088,27 @@ function showDetail(eleveId) {
 
   matieres.forEach(m => {
     const comps = competences.filter(c => c.matiere === m);
-    html += `<div class="detail-card">
-      <div class="detail-matiere">${m}</div>`;
+   const safeM = m.replace(/'/g, "\\'");
+html += `<div class="detail-card">
+  <div class="detail-matiere" style="display:flex;justify-content:space-between;align-items:center">
+    <span>${m}</span>
+    <button onclick="deleteMatiere('${safeM}')"
+            style="border:none;background:transparent;font-size:18px;cursor:pointer">🗑️</button>
+  </div>`;
     comps.forEach(c => {
       const g = notes[`${e.id}_${c.id}`];
-      const color = g ? gradeColor(g) : '#ddd';
-      html += `<div class="detail-row">
-        <div class="detail-comp">${c.nom}${c.date_eval?` <span style="font-size:0.65rem;color:var(--muted)">${c.date_eval}</span>`:''}</div>
-        <div class="grade-pill ${g?g.replace('+','PLUS'):'EMPTY'}" onclick="openGradeSheet(${e.id},${c.id},'${e.prenom}','${c.nom}')">${g||'·'}</div>
-      </div>`;
+      const g = notes[`${e.id}_${c.id}`];
+html += `<div class="detail-row">
+  <div class="detail-comp">${c.nom}${c.date_eval?` <span style="font-size:0.65rem;color:var(--muted)">${c.date_eval}</span>`:''}</div>
+
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="grade-pill ${g?g.replace('+','PLUS'):'EMPTY'}"
+         onclick="openGradeSheet(${e.id},${c.id},'${e.prenom}','${c.nom.replace(/'/g,"\\'")}')">${g||'·'}</div>
+
+    <button onclick="deleteCompetence(${c.id})"
+            style="border:none;background:transparent;font-size:18px;cursor:pointer">🗑️</button>
+  </div>
+</div>`;
     });
     html += '</div>';
   });
@@ -1209,22 +1221,43 @@ async function saveEleve() {
 // ============================================================
 // COMPÉTENCE
 // ============================================================
+
 async function saveComp() {
-  const matiere   = document.getElementById('inp-matiere').value;
+  let matiere = document.getElementById('inp-matiere').value;
+  const custom = document.getElementById('inp-matiere-custom')?.value.trim() || '';
+
+  if (matiere === 'Autre') {
+    if (!custom) { showToast('Saisis une matière'); return; }
+    matiere = custom;
+  }
+
   const nom       = document.getElementById('inp-comp').value.trim();
   const periode   = document.getElementById('inp-periode').value;
   const date_eval = document.getElementById('inp-date').value || null;
+
   if (!nom) { showToast('Saisis le nom de la compétence'); return; }
+
   try {
-    const { data, error } = await db.from('competences').insert({ matiere, nom, periode, date_eval, user_id: currentUser.id }).select().single();
+    const { data, error } = await db
+      .from('competences')
+      .insert({ matiere, nom, periode, date_eval, user_id: currentUser.id })
+      .select()
+      .single();
+
     if (error) throw error;
+
     competences.push(data);
+
     closeModal('modalComp');
     document.getElementById('inp-comp').value = '';
+    document.getElementById('inp-date').value = '';
+    document.getElementById('inp-matiere-custom').value = '';
+    document.getElementById('matiereCustomWrap').style.display = 'none';
+
     renderAll();
     showToast(`"${nom}" ajoutée ✓`);
   } catch(e) {
-    showToast('Erreur lors de l\'ajout ⚠️');
+    showToast("Erreur lors de l'ajout ⚠️");
     console.error(e);
   }
 }
@@ -1246,11 +1279,129 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
 }
+// ============================================================
+// MATIÈRES (liste dynamique + "Autre" -> champ custom)
+// ============================================================
+function refreshMatiereSelect() {
+  const sel = document.getElementById('inp-matiere');
+  const wrap = document.getElementById('matiereCustomWrap');
+  const inpCustom = document.getElementById('inp-matiere-custom');
+
+  const defaults = ['Sciences','Anglais','Français','Mathématiques','Histoire-Géo'];
+  const customs = [...new Set((competences || []).map(c => c.matiere))]
+    .filter(m => m && !defaults.includes(m))
+    .sort((a,b)=>a.localeCompare(b));
+
+  sel.innerHTML =
+    defaults.map(m => `<option>${m}</option>`).join('') +
+    (customs.length ? `<option disabled>— Mes matières —</option>` : '') +
+    customs.map(m => `<option>${m}</option>`).join('') +
+    `<option>Autre</option>`;
+
+  // reset custom UI
+  wrap.style.display = 'none';
+  inpCustom.value = '';
+}
+
+// Appelé quand l'utilisateur choisit une matière
+function onMatiereChange() {
+  const sel = document.getElementById('inp-matiere');
+  const wrap = document.getElementById('matiereCustomWrap');
+  const inpCustom = document.getElementById('inp-matiere-custom');
+
+  const isOther = sel.value === 'Autre';
+  wrap.style.display = isOther ? '' : 'none';
+  if (!isOther) inpCustom.value = '';
+}
+
+// ============================================================
+// SUPPRESSIONS
+// ============================================================
+async function deleteCompetence(compId) {
+  if (!confirm("Supprimer cette compétence ? Les notes associées seront supprimées.")) return;
+
+  try {
+    // 1) supprimer notes liées
+    const { error: e1 } = await db
+      .from('notes')
+      .delete()
+      .eq('competence_id', compId)
+      .eq('user_id', currentUser.id);
+    if (e1) throw e1;
+
+    // 2) supprimer compétence
+    const { error: e2 } = await db
+      .from('competences')
+      .delete()
+      .eq('id', compId)
+      .eq('user_id', currentUser.id);
+    if (e2) throw e2;
+
+    // 3) mettre à jour l'état local
+    competences = competences.filter(c => c.id !== compId);
+
+    // 4) nettoyer cache notes local
+    Object.keys(notes).forEach(k => {
+      const [, cId] = k.split('_');
+      if (Number(cId) === compId) delete notes[k];
+    });
+
+    renderAll();
+    showToast("Compétence supprimée ✓");
+  } catch (e) {
+    console.error(e);
+    showToast("Erreur suppression ⚠️");
+  }
+}
+
+async function deleteMatiere(matiere) {
+  if (!confirm(`Supprimer la matière "${matiere}" ? Toutes les compétences + notes liées seront supprimées.`)) return;
+
+  try {
+    const compIds = competences
+      .filter(c => c.matiere === matiere)
+      .map(c => c.id);
+
+    if (compIds.length) {
+      const { error: e1 } = await db
+        .from('notes')
+        .delete()
+        .in('competence_id', compIds)
+        .eq('user_id', currentUser.id);
+      if (e1) throw e1;
+
+      const { error: e2 } = await db
+        .from('competences')
+        .delete()
+        .in('id', compIds)
+        .eq('user_id', currentUser.id);
+      if (e2) throw e2;
+    }
+
+    // état local
+    competences = competences.filter(c => c.matiere !== matiere);
+
+    // nettoyer notes locales
+    const compIdSet = new Set(compIds);
+    Object.keys(notes).forEach(k => {
+      const [, cId] = k.split('_');
+      if (compIdSet.has(Number(cId))) delete notes[k];
+    });
+
+    renderAll();
+    showToast("Matière supprimée ✓");
+  } catch (e) {
+    console.error(e);
+    showToast("Erreur suppression ⚠️");
+  }
+}
 
 // ============================================================
 // START
 // ============================================================
-init();
+   // Gestion du select matière -> affiche le champ "nouvelle matière"
+document.getElementById('inp-matiere').addEventListener('change', onMatiereChange);
+   init();
 </script>
 
 </body>
