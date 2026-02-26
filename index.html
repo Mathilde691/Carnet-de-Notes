@@ -1127,7 +1127,17 @@ comps.forEach(c => {
   document.getElementById('detailContent').innerHTML = html;
   showScreen('detail');
 }
+   async function quickRefresh() {
+  await loadAll();
+  renderAll();
 
+  if (
+    document.getElementById('screen-detail')?.classList.contains('active')
+    && window.currentDetailEleveId
+  ) {
+    showDetail(window.currentDetailEleveId);
+  }
+}
 // ============================================================
 // NAVIGATION
 // ============================================================
