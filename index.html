@@ -974,13 +974,13 @@ async function loadAll() {
 // ============================================================
 // RENDER
 // ============================================================
-function await quickRefresh() {
+function renderAll() {
   renderStats();
   renderEleves();
   renderGrille();
 }
-
-function gradeColor(g) {
+   
+   function gradeColor(g) {
   return {
     'A+':'#2d6a4f','A':'#52b788','EA':'#f4a261','NA':'#e76f51','ABS':'#9ca3af'
   }[g] || '#ccc';
