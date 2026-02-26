@@ -1020,17 +1020,23 @@ function renderEleves() {
     const miniPills = Object.entries(counts)
       .map(([g,n]) => `<span class="mini-pill" style="background:${gradeColor(g)}">${n}×${g}</span>`)
       .join('');
-    return `<div class="eleve-card" onclick="showDetail(${e.id})">
-      <div class="eleve-info">
-        <div class="eleve-name">${e.prenom} ${e.nom}</div>
-        <div class="eleve-sub">
-          <span class="niveau-badge ${e.niveau.toLowerCase()}">${e.niveau}</span>
-          ${myNotes.length} éval.
-        </div>
-        ${miniPills ? `<div class="mini-grades">${miniPills}</div>` : ''}
-      </div>
-      <div class="eleve-score" style="color:${scoreColor}">${scoreNum !== null ? scoreNum+'%' : '—'}</div>
-    </div>`;
+   return `<div class="eleve-card" onclick="showDetail(${e.id})">
+  <div class="eleve-info">
+    <div class="eleve-name">${e.prenom} ${e.nom}</div>
+    <div class="eleve-sub">
+      <span class="niveau-badge ${e.niveau.toLowerCase()}">${e.niveau}</span>
+      ${myNotes.length} éval.
+    </div>
+    ${miniPills ? `<div class="mini-grades">${miniPills}</div>` : ''}
+  </div>
+
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="eleve-score" style="color:${scoreColor}">${scoreNum !== null ? scoreNum+'%' : '—'}</div>
+
+    <button onclick="event.stopPropagation(); deleteEleve(${e.id});"
+            style="border:none;background:transparent;font-size:18px;cursor:pointer">🗑️</button>
+  </div>
+</div>`;
   }).join('');
 }
 
