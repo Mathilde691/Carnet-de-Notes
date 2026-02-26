@@ -1085,7 +1085,8 @@ function renderGrille() {
 }
 
 function showDetail(eleveId) {
-  const e = eleves.find(x => x.id === eleveId);
+   window.currentDetailEleveId = eleveId;
+   const e = eleves.find(x => x.id === eleveId);
   if (!e) return;
   const matieres = [...new Set(competences.map(c => c.matiere))];
   let html = `
