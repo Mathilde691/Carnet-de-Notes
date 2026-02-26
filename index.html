@@ -1083,9 +1083,14 @@ function showDetail(eleveId) {
   if (!e) return;
   const matieres = [...new Set(competences.map(c => c.matiere))];
   let html = `
-    <div style="font-size:1.2rem;font-weight:800;margin-bottom:4px">${e.prenom} ${e.nom}</div>
-    <div style="margin-bottom:20px"><span class="niveau-badge ${e.niveau.toLowerCase()}">${e.niveau}</span></div>`;
-
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px">
+    <div style="font-size:1.2rem;font-weight:800">${e.prenom} ${e.nom}</div>
+    <button onclick="deleteEleve(${e.id})"
+            style="border:none;background:transparent;font-size:20px;cursor:pointer">🗑️</button>
+  </div>
+  <div style="margin-bottom:20px">
+    <span class="niveau-badge ${e.niveau.toLowerCase()}">${e.niveau}</span>
+  </div>`;
   matieres.forEach(m => {
     const comps = competences.filter(c => c.matiere === m);
    const safeM = m.replace(/'/g, "\\'");
@@ -1395,7 +1400,46 @@ async function deleteMatiere(matiere) {
     showToast("Erreur suppression ⚠️");
   }
 }
+   async function deleteEleve(eleveId) {
+  const e = eleves.find(x => x.id === eleveId);
+  const label = e ? `${e.prenom} ${e.nom}` : `#${eleveId}`;
 
+  if (!confirm(`Supprimer l'élève ${label} ?\nToutes ses notes seront supprimées.`)) return;
+
+  try {
+    // 1) supprimer notes liées
+    const { error: e1 } = await db
+      .from('notes')
+      .delete()
+      .eq('eleve_id', eleveId)
+      .eq('user_id', currentUser.id);
+    if (e1) throw e1;
+
+    // 2) supprimer élève
+    const { error: e2 } = await db
+      .from('eleves')
+      .delete()
+      .eq('id', eleveId)
+      .eq('user_id', currentUser.id);
+    if (e2) throw e2;
+
+    // 3) mettre à jour l'état local
+    eleves = eleves.filter(x => x.id !== eleveId);
+
+    // 4) nettoyer notes locales
+    Object.keys(notes).forEach(k => {
+      const [eId] = k.split('_');
+      if (Number(eId) === eleveId) delete notes[k];
+    });
+
+    renderAll();
+    showScreen('accueil');
+    showToast("Élève supprimé ✓");
+  } catch (err) {
+    console.error(err);
+    showToast("Erreur suppression ⚠️");
+  }
+}
 // ============================================================
 // START
 // ============================================================
