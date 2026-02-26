@@ -950,7 +950,7 @@ function showApp() {
   document.getElementById('appMain').style.display = '';
   document.getElementById('appNav').style.display = '';
   document.getElementById('fabBtn').style.display = '';
-  renderAll();
+  await quickRefresh();
 }
 
 // ============================================================
@@ -974,7 +974,7 @@ async function loadAll() {
 // ============================================================
 // RENDER
 // ============================================================
-function renderAll() {
+function await quickRefresh() {
   renderStats();
   renderEleves();
   renderGrille();
@@ -1193,7 +1193,7 @@ async function saveNote(eleveId, compId, grade) {
       notes[key] = grade;
       showToast(`Note "${grade}" enregistrée ✓`);
     }
-    renderAll();
+    await quickRefresh();
   } catch(e) {
     showToast('Erreur lors de la sauvegarde ⚠️');
     console.error(e);
@@ -1221,7 +1221,7 @@ async function saveEleve() {
     closeModal('modalEleve');
     document.getElementById('inp-prenom').value = '';
     document.getElementById('inp-nom').value = '';
-    renderAll();
+    await quickRefresh();
     showToast(`${prenom} ${nom} ajouté(e) ✓`);
   } catch(e) {
     showToast('Erreur lors de l\'ajout ⚠️');
@@ -1265,7 +1265,7 @@ async function saveComp() {
     document.getElementById('inp-matiere-custom').value = '';
     document.getElementById('matiereCustomWrap').style.display = 'none';
 
-    renderAll();
+    await quickRefresh();
     showToast(`"${nom}" ajoutée ✓`);
   } catch(e) {
     showToast("Erreur lors de l'ajout ⚠️");
@@ -1289,6 +1289,21 @@ function showToast(msg) {
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+// ============================================================
+// REFRESH AUTOMATIQUE SIMPLE
+// ============================================================
+async function quickRefresh() {
+  await loadAll();
+  renderAll();
+
+  // si on est sur la fiche élève → on la recharge aussi
+  if (
+    document.getElementById('screen-detail')?.classList.contains('active')
+    && window.currentDetailEleveId
+  ) {
+    showDetail(window.currentDetailEleveId);
+  }
 }
 // ============================================================
 // MATIÈRES (liste dynamique + "Autre" -> champ custom)
@@ -1357,7 +1372,7 @@ async function deleteCompetence(compId) {
       if (Number(cId) === compId) delete notes[k];
     });
 
-    renderAll();
+    await quickRefresh();
     showToast("Compétence supprimée ✓");
   } catch (e) {
     console.error(e);
@@ -1399,7 +1414,7 @@ async function deleteMatiere(matiere) {
       if (compIdSet.has(Number(cId))) delete notes[k];
     });
 
-    renderAll();
+    await quickRefresh();
     showToast("Matière supprimée ✓");
   } catch (e) {
     console.error(e);
@@ -1438,7 +1453,7 @@ async function deleteMatiere(matiere) {
       if (Number(eId) === eleveId) delete notes[k];
     });
 
-    renderAll();
+    await quickRefresh();
     showScreen('accueil');
     showToast("Élève supprimé ✓");
   } catch (err) {
