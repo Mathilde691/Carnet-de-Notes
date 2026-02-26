@@ -908,7 +908,7 @@ async function init() {
     if (session) {
       currentUser = session.user;
       await loadAll();
-      showApp();
+      await showApp();
     } else {
       showLogin();
     }
@@ -931,7 +931,7 @@ async function doLogin() {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('loadingScreen').classList.remove('hidden');
     await loadAll();
-    showApp();
+    await showApp();
   } catch(e) {
     errEl.textContent = 'Email ou mot de passe incorrect.';
     errEl.classList.remove('hidden');
