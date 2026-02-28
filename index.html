@@ -302,6 +302,12 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
       <button class="filter-chip" onclick="filterPeriode(this,'P3')">P3</button>
       <button class="filter-chip" onclick="filterPeriode(this,'P4')">P4</button>
       <button class="filter-chip" onclick="filterPeriode(this,'P5')">P5</button>
+      <button class="filter-chip" onclick="openEditGrille(this)" id="chip-edit-grille" style="border-color:var(--indigo);color:var(--indigo)">✏️ Éditer</button>
+    </div>
+    <!-- PANEL ÉDITION GRILLE -->
+    <div id="editGrillePanel" style="display:none;background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:14px;margin-bottom:14px">
+      <div style="font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px">Gérer matières &amp; compétences</div>
+      <div id="editGrilleContent"></div>
     </div>
     <div class="grille-table-wrap">
       <table id="grilleTable">
@@ -390,19 +396,21 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
       <label class="form-label">Compétence évaluée</label>
       <input class="form-input" id="inp-comp" type="text" placeholder="Ex: États de l'eau" autocomplete="off" autocapitalize="sentences">
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Période</label>
-        <select class="form-input" id="inp-periode"><option>P1</option><option>P2</option><option selected>P3</option><option>P4</option><option>P5</option></select>
+    <div class="form-group">
+      <label class="form-label">Périodes</label>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px" id="comp-periodes-grid">
+        <button type="button" class="genre-btn" id="comp-p1" onclick="toggleCompPeriode('P1')">P1</button>
+        <button type="button" class="genre-btn" id="comp-p2" onclick="toggleCompPeriode('P2')">P2</button>
+        <button type="button" class="genre-btn selected-unknown" id="comp-p3" onclick="toggleCompPeriode('P3')">P3</button>
+        <button type="button" class="genre-btn" id="comp-p4" onclick="toggleCompPeriode('P4')">P4</button>
+        <button type="button" class="genre-btn" id="comp-p5" onclick="toggleCompPeriode('P5')">P5</button>
       </div>
-      <div class="form-group"><label class="form-label">Date (optionnel)</label><input class="form-input" id="inp-date" type="date"></div>
     </div>
+    <div class="form-group"><label class="form-label">Date (optionnel)</label><input class="form-input" id="inp-date" type="date"></div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modalComp');openModal('modalMenu')">← Retour</button>
       <button class="btn-save" onclick="saveComp()">Enregistrer</button>
     </div>
-    <button onclick="saveCompAllPeriodes()" style="width:100%;margin-top:10px;padding:13px;border-radius:10px;border:1.5px solid var(--indigo);background:rgba(99,102,241,0.08);color:var(--indigo);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;">
-      📋 Enregistrer sur toutes les périodes (P1→P5)
-    </button>
   </div>
 </div>
 
@@ -441,14 +449,11 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
       <div class="menu-btn-icon" style="background:#eff6ff">👤</div>
       <div><div>Ajouter un élève</div><div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Prénom, nom, niveau, genre</div></div>
     </button>
-    <button class="menu-btn" onclick="closeModal('modalMenu');openCompModal()" style="margin-bottom:8px">
+    <button class="menu-btn" onclick="closeModal('modalMenu');openCompModal()" style="margin-bottom:16px">
       <div class="menu-btn-icon" style="background:#f0fdf4">📚</div>
       <div><div>Ajouter une compétence</div><div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Matière, libellé, période</div></div>
     </button>
-    <button class="menu-btn" onclick="closeModal('modalMenu');openDupMatiere();openModal('modalMatiere')" style="margin-bottom:16px">
-      <div class="menu-btn-icon" style="background:#f5f3ff">📋</div>
-      <div><div>Dupliquer une matière</div><div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Créer la matière sur toutes les périodes</div></div>
-    </button>
+
     <button onclick="closeModal('modalMenu')" style="width:100%;padding:13px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;font-weight:700;color:var(--muted);cursor:pointer;">
       ✕ Retour à l'accueil
     </button>
@@ -730,17 +735,24 @@ async function saveComp() {
   const custom=(document.getElementById('inp-matiere-custom')?.value||'').trim();
   if(matiere==='Autre'){if(!custom){showToast('Saisis une matière');return;} matiere=custom;}
   const nom=document.getElementById('inp-comp').value.trim();
-  const periode=document.getElementById('inp-periode').value;
   const date_eval=document.getElementById('inp-date').value||null;
   if(!nom){showToast('Saisis le nom de la compétence');return;}
+  if(compPeriodes.size===0){showToast('Sélectionne au moins une période');return;}
   try {
-    const {data,error}=await db.from('competences').insert({matiere,nom,periode,date_eval,user_id:currentUser.id}).select().single();
+    // Éviter les doublons
+    const existantes=new Set(competences.filter(c=>c.matiere===matiere&&c.nom===nom).map(c=>c.periode));
+    const aInserer=[...compPeriodes].filter(p=>!existantes.has(p));
+    if(aInserer.length===0){showToast('Cette compétence existe déjà dans les périodes sélectionnées');return;}
+    const rows=aInserer.map(p=>({matiere,nom,periode:p,date_eval,user_id:currentUser.id}));
+    const {data,error}=await db.from('competences').insert(rows).select();
     if(error) throw error;
-    competences.push(data); closeModal('modalComp');
+    competences.push(...data); closeModal('modalComp');
     document.getElementById('inp-comp').value=''; document.getElementById('inp-date').value='';
     if(document.getElementById('inp-matiere-custom')) document.getElementById('inp-matiere-custom').value='';
     document.getElementById('matiereCustomWrap').classList.add('hidden');
-    await quickRefresh(); showToast(`"${nom}" ajoutée ✓`);
+    await quickRefresh();
+    const label=aInserer.length===1?aInserer[0]:aInserer.join(', ');
+    showToast(`"${nom}" ajoutée sur ${label} ✓`);
   } catch(e){showToast("Erreur lors de l'ajout ⚠️");console.error(e);}
 }
 
@@ -748,9 +760,9 @@ async function saveComp() {
 
 function openCompModal() {
   refreshMatiereSelect();
-  // reset champs
   document.getElementById('inp-comp').value = '';
   document.getElementById('inp-date').value = '';
+  initCompPeriodes();
   openModal('modalComp');
 }
 
@@ -851,45 +863,93 @@ async function updateEleve() {
 }
 
 
-// ENREGISTRER COMPÉTENCE SUR TOUTES LES PÉRIODES
-async function saveCompAllPeriodes() {
-  let matiere = document.getElementById('inp-matiere').value;
-  const custom = (document.getElementById('inp-matiere-custom')?.value || '').trim();
-  if (matiere === 'Autre') {
-    if (!custom) { showToast('Saisis une matière'); return; }
-    matiere = custom;
+
+
+
+
+// SÉLECTEUR DE PÉRIODES POUR NOUVELLE COMPÉTENCE
+let compPeriodes = new Set(['P3']); // P3 sélectionnée par défaut
+
+function initCompPeriodes() {
+  compPeriodes = new Set(['P3']);
+  ['P1','P2','P3','P4','P5'].forEach(p => {
+    const btn = document.getElementById('comp-' + p.toLowerCase());
+    if (btn) btn.className = 'genre-btn' + (p === 'P3' ? ' selected-unknown' : '');
+  });
+}
+
+function toggleCompPeriode(p) {
+  const btn = document.getElementById('comp-' + p.toLowerCase());
+  if (compPeriodes.has(p)) {
+    if (compPeriodes.size === 1) { showToast('Sélectionne au moins une période'); return; }
+    compPeriodes.delete(p);
+    btn.className = 'genre-btn';
+  } else {
+    compPeriodes.add(p);
+    btn.className = 'genre-btn selected-unknown';
   }
-  const nom = document.getElementById('inp-comp').value.trim();
-  const date_eval = document.getElementById('inp-date').value || null;
-  if (!nom) { showToast('Saisis le nom de la compétence'); return; }
+}
 
-  const periodes = ['P1','P2','P3','P4','P5'];
-  // Éviter les doublons : on ignore les périodes où cette compétence+matière existe déjà
-  const existantes = new Set(
-    competences.filter(c => c.matiere === matiere && c.nom === nom).map(c => c.periode)
-  );
-  const aInserer = periodes.filter(p => !existantes.has(p));
+// ============================================================
+// ONGLET ÉDITER dans la grille
+// ============================================================
+let editGrilleOpen = false;
 
-  if (aInserer.length === 0) {
-    showToast('Cette compétence existe déjà dans toutes les périodes');
+function openEditGrille(el) {
+  editGrilleOpen = !editGrilleOpen;
+  const panel = document.getElementById('editGrillePanel');
+  const chip = document.getElementById('chip-edit-grille');
+  if (editGrilleOpen) {
+    panel.style.display = 'block';
+    chip.classList.add('active');
+    renderEditGrille();
+  } else {
+    panel.style.display = 'none';
+    chip.classList.remove('active');
+  }
+}
+
+function renderEditGrille() {
+  const filtered = activePeriodeFilter === 'all'
+    ? competences
+    : competences.filter(c => c.periode === activePeriodeFilter);
+
+  const matieres = [...new Set(filtered.map(c => c.matiere))];
+  const allMatieres = [...new Set(competences.map(c => c.matiere))];
+
+  if (!allMatieres.length) {
+    document.getElementById('editGrilleContent').innerHTML =
+      '<p style="color:var(--muted);font-size:0.82rem;text-align:center;padding:16px 0">Aucune matière — ajoutez-en une via le menu ＋</p>';
     return;
   }
 
-  try {
-    const rows = aInserer.map(p => ({ matiere, nom, periode: p, date_eval, user_id: currentUser.id }));
-    const { data, error } = await db.from('competences').insert(rows).select();
-    if (error) throw error;
-    competences.push(...data);
-    closeModal('modalComp');
-    document.getElementById('inp-comp').value = '';
-    document.getElementById('inp-date').value = '';
-    if (document.getElementById('inp-matiere-custom')) document.getElementById('inp-matiere-custom').value = '';
-    document.getElementById('matiereCustomWrap').classList.add('hidden');
-    await quickRefresh();
-    showToast(`"${nom}" ajoutée sur ${aInserer.join(', ')} ✓`);
-  } catch(e) { showToast("Erreur lors de l'ajout ⚠️"); console.error(e); }
-}
+  let html = '';
+  allMatieres.forEach(m => {
+    const safeM = m.replace(/'/g, "\'");
+    const comps = competences.filter(c => c.matiere === m && c.nom !== '(matière)');
+    html += `<div style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:10px;margin-bottom:6px;border:1.5px solid var(--border)">
+        <span style="font-size:0.78rem;font-weight:800">${m}</span>
+        <button onclick="deleteMatiere('${safeM}')" class="icon-btn danger" style="width:26px;height:26px;font-size:0.7rem">🗑️</button>
+      </div>`;
+    if (comps.length === 0) {
+      html += `<p style="font-size:0.72rem;color:var(--muted);padding:4px 10px">Aucune compétence</p>`;
+    }
+    comps.forEach(c => {
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-bottom:1px solid var(--border)">
+        <div style="font-size:0.78rem;flex:1;padding-right:8px">
+          <span style="font-weight:600">${c.nom}</span>
+          <span style="font-size:0.62rem;color:var(--muted);margin-left:6px;background:var(--bg);padding:1px 6px;border-radius:4px">${c.periode}</span>
+          ${c.date_eval ? `<span style="font-size:0.6rem;color:var(--muted)"> · ${c.date_eval}</span>` : ''}
+        </div>
+        <button onclick="deleteCompetence(${c.id});setTimeout(renderEditGrille,300)" class="icon-btn danger" style="width:26px;height:26px;font-size:0.7rem">🗑️</button>
+      </div>`;
+    });
+    html += '</div>';
+  });
 
+  document.getElementById('editGrilleContent').innerHTML = html;
+}
 
 // DUPLIQUER MATIÈRE
 let dupPeriodes = new Set(['P1','P2','P3','P4','P5']);
