@@ -286,6 +286,8 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
       <button class="filter-chip active" onclick="filterEleves(this,'all')">Tous</button>
       <button class="filter-chip" onclick="filterEleves(this,'CE2')">CE2</button>
       <button class="filter-chip" onclick="filterEleves(this,'CM1')">CM1</button>
+      <button class="filter-chip" onclick="filterEleves(this,'F')">👧 Filles</button>
+      <button class="filter-chip" onclick="filterEleves(this,'M')">👦 Garçons</button>
     </div>
     <div id="elevesList"></div>
   </div>
@@ -520,8 +522,11 @@ function renderStats() {
 }
 
 function sortedEleves(filter) {
-  return eleves.filter(e=>filter==='all'||e.niveau===filter)
-    .sort((a,b)=>{ if(a.niveau!==b.niveau) return a.niveau==='CE2'?-1:1; return a.nom.localeCompare(b.nom); });
+  return eleves.filter(e=>{
+    if(filter==='all') return true;
+    if(filter==='M' || filter==='F') return e.sexe===filter;
+    return e.niveau===filter;
+  }).sort((a,b)=>{ if(a.niveau!==b.niveau) return a.niveau==='CE2'?-1:1; return a.nom.localeCompare(b.nom); });
 }
 
 function renderEleves() {
@@ -530,7 +535,7 @@ function renderEleves() {
   if (!filtered.length) { list.innerHTML='<p style="text-align:center;color:var(--muted);padding:40px 0;font-size:0.85rem">Aucun élève — appuyez sur ＋ pour en ajouter un</p>'; return; }
   let html = '', lastNiv = null;
   filtered.forEach(e => {
-    if (activeEleveFilter==='all' && e.niveau!==lastNiv) {
+    if ((activeEleveFilter==='all'||activeEleveFilter==='M'||activeEleveFilter==='F') && e.niveau!==lastNiv) {
       lastNiv = e.niveau;
       html += `<div class="niveau-sep"><div class="niveau-sep-line"></div><span class="niveau-sep-label ${e.niveau.toLowerCase()}">${e.niveau}</span><div class="niveau-sep-line"></div></div>`;
     }
