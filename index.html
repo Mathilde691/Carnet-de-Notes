@@ -180,7 +180,7 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
 .btn-save { flex: 2; padding: 13px; border-radius: 10px; border: none; background: linear-gradient(135deg, var(--green), var(--green-dk)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(5,150,105,0.35); }
 
 /* GENRE TOGGLE */
-.genre-toggle { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.genre-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .genre-btn { padding: 11px 8px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface2); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; text-align: center; color: var(--muted); }
 .genre-btn.selected-boy  { background: var(--boy-bg);  border-color: var(--boy-border);  color: var(--boy-text); }
 .genre-btn.selected-girl { background: var(--girl-bg); border-color: var(--girl-border); color: var(--girl-text); }
@@ -359,7 +359,7 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
       <div class="genre-toggle">
         <button type="button" class="genre-btn" id="genre-boy" onclick="selectGenre('M')">👦 Garçon</button>
         <button type="button" class="genre-btn" id="genre-girl" onclick="selectGenre('F')">👧 Fille</button>
-        <button type="button" class="genre-btn selected-unknown" id="genre-unknown" onclick="selectGenre('')">❓ N/A</button>
+
       </div>
     </div>
     <div class="modal-actions">
@@ -418,7 +418,7 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
       <div class="genre-toggle">
         <button type="button" class="genre-btn" id="edit-genre-boy" onclick="selectEditGenre('M')">👦 Garçon</button>
         <button type="button" class="genre-btn" id="edit-genre-girl" onclick="selectEditGenre('F')">👧 Fille</button>
-        <button type="button" class="genre-btn" id="edit-genre-unknown" onclick="selectEditGenre('')">❓ N/A</button>
+
       </div>
     </div>
     <div class="modal-actions">
@@ -751,7 +751,7 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 
 // EDIT ELEVE
 let editingEleveId = null;
-let selectedEditGenre = '';
+let selectedEditGenre = 'M';
 
 function openEditEleve(eleveId) {
   const e = eleves.find(x => x.id === eleveId);
@@ -768,7 +768,6 @@ function selectEditGenre(val) {
   selectedEditGenre = val;
   document.getElementById('edit-genre-boy').className = 'genre-btn' + (val === 'M' ? ' selected-boy' : '');
   document.getElementById('edit-genre-girl').className = 'genre-btn' + (val === 'F' ? ' selected-girl' : '');
-  document.getElementById('edit-genre-unknown').className = 'genre-btn' + (val === '' ? ' selected-unknown' : '');
 }
 
 async function updateEleve() {
