@@ -674,7 +674,7 @@ function showDetail(eleveId) {
     html+=`<div class="detail-card"><div class="detail-matiere-header"><div class="detail-matiere-label">${m}</div><button onclick="deleteMatiere('${safeM}')" class="icon-btn danger" style="width:28px;height:28px;font-size:0.75rem">🗑️</button></div>`;
     comps.forEach(c=>{
       const g=notes[`${e.id}_${c.id}`];
-      html+=`<div class="detail-row"><div class="detail-comp">${c.nom}${c.date_eval?`<span class="detail-comp-date">📅 ${c.date_eval}</span>`:''}</div>
+      html+=`<div class="detail-row"><div class="detail-comp">${c.nom !== '(matière)' ? c.nom : ''}${c.date_eval?`<span class="detail-comp-date">📅 ${c.date_eval}</span>`:''}<span style="font-size:0.62rem;font-weight:800;background:var(--bg);color:var(--muted);padding:1px 7px;border-radius:5px;margin-left:6px">${c.periode}</span></div>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="grade-pill ${g?g.replace('+','PLUS'):'EMPTY'}" onclick="openGradeSheet(${e.id},${c.id},'${e.prenom}','${(c.nom||'').replace(/'/g,"\\'")}')">${g||'·'}</div>
         <button onclick="deleteCompetence(${c.id})" class="icon-btn danger" style="width:28px;height:28px;font-size:0.75rem">🗑️</button>
