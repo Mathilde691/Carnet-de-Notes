@@ -554,7 +554,11 @@ async function loadAll() {
   (no || []).forEach(n => { notes[`${n.eleve_id}_${n.competence_id}`] = n.grade; });
 }
 async function quickRefresh() {
-  await loadAll();
+  try {
+    await loadAll();
+  } catch(e) {
+    console.error('loadAll error:', e);
+  }
   renderAll();
   refreshMatiereSelect();
   if (editGrilleOpen) renderEditGrille();
@@ -724,12 +728,15 @@ async function saveEleve() {
   const niveau=document.getElementById('inp-niveau').value, sexe=selectedGenre;
   if(!prenom||!nom){showToast('Remplis prénom et nom');return;}
   try {
-    const {data,error}=await db.from('eleves').insert({prenom,nom,niveau,sexe,user_id:currentUser.id}).select().single();
+    const {error}=await db.from('eleves').insert({prenom,nom,niveau,sexe,user_id:currentUser.id});
     if(error) throw error;
-    eleves.push(data); closeModal('modalEleve');
-    document.getElementById('inp-prenom').value=''; document.getElementById('inp-nom').value=''; selectGenre('');
-    await quickRefresh(); showToast(`${prenom} ${nom} ajouté(e) ✓`);
-  } catch(e){showToast("Erreur lors de l'ajout ⚠️");console.error(e);}
+    closeModal('modalEleve');
+    document.getElementById('inp-prenom').value='';
+    document.getElementById('inp-nom').value='';
+    selectGenre('M');
+    await quickRefresh();
+    showToast(`${prenom} ${nom} ajouté(e) ✓`);
+  } catch(e){showToast("Erreur lors de l'ajout ⚠️ — "+e.message);console.error(e);}
 }
 async function saveComp() {
   let matiere=document.getElementById('inp-matiere').value;
@@ -745,9 +752,9 @@ async function saveComp() {
     const aInserer=[...compPeriodes].filter(p=>!existantes.has(p));
     if(aInserer.length===0){showToast('Cette compétence existe déjà dans les périodes sélectionnées');return;}
     const rows=aInserer.map(p=>({matiere,nom,periode:p,date_eval,user_id:currentUser.id}));
-    const {data,error}=await db.from('competences').insert(rows).select();
+    const {error}=await db.from('competences').insert(rows);
     if(error) throw error;
-    competences.push(...data); closeModal('modalComp');
+    closeModal('modalComp');
     document.getElementById('inp-comp').value=''; document.getElementById('inp-date').value='';
     if(document.getElementById('inp-matiere-custom')) document.getElementById('inp-matiere-custom').value='';
     document.getElementById('matiereCustomWrap').classList.add('hidden');
@@ -1037,9 +1044,8 @@ async function dupMatiere() {
       rows = aCreerMat.map(p => ({ matiere, nom: '(matière)', periode: p, date_eval: null, user_id: currentUser.id }));
     }
 
-    const { data, error } = await db.from('competences').insert(rows).select();
+    const { error } = await db.from('competences').insert(rows);
     if(error) throw error;
-    competences.push(...data);
     closeModal('modalMatiere');
     document.getElementById('dup-comp').value = '';
     await quickRefresh();
