@@ -437,14 +437,53 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
 <div class="modal-overlay" id="modalMenu">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="sheet-handle"></div>
-    <button class="menu-btn" onclick="closeModal('modalMenu');openModal('modalEleve')" style="margin-bottom:10px">
+    <button class="menu-btn" onclick="closeModal('modalMenu');openModal('modalEleve')" style="margin-bottom:8px">
       <div class="menu-btn-icon" style="background:#eff6ff">👤</div>
       <div><div>Ajouter un élève</div><div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Prénom, nom, niveau, genre</div></div>
     </button>
-    <button class="menu-btn" onclick="closeModal('modalMenu');refreshMatiereSelect();openModal('modalComp')">
+    <button class="menu-btn" onclick="closeModal('modalMenu');refreshMatiereSelect();openModal('modalComp')" style="margin-bottom:8px">
       <div class="menu-btn-icon" style="background:#f0fdf4">📚</div>
       <div><div>Ajouter une compétence</div><div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Matière, libellé, période</div></div>
     </button>
+    <button class="menu-btn" onclick="closeModal('modalMenu');openDupMatiere();openModal('modalMatiere')" style="margin-bottom:16px">
+      <div class="menu-btn-icon" style="background:#f5f3ff">📋</div>
+      <div><div>Dupliquer une matière</div><div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Créer la matière sur toutes les périodes</div></div>
+    </button>
+    <button onclick="closeModal('modalMenu')" style="width:100%;padding:13px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;font-weight:700;color:var(--muted);cursor:pointer;">
+      ✕ Retour à l'accueil
+    </button>
+  </div>
+</div>
+
+
+<!-- MODAL DUPLIQUER MATIÈRE -->
+<div class="modal-overlay" id="modalMatiere">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-title">📋 Dupliquer une matière</div>
+    <div class="form-group">
+      <label class="form-label">Matière à dupliquer</label>
+      <select class="form-input" id="dup-matiere" onchange="onDupMatiereChange()">
+      </select>
+    </div>
+    <div class="form-group hidden" id="dupMatiereCustomWrap">
+      <label class="form-label">Nouvelle matière</label>
+      <input class="form-input" id="dup-matiere-custom" placeholder="Ex: EPS, Arts plastiques...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Périodes cibles</label>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:2px" id="dup-periodes-grid">
+        <button type="button" class="genre-btn selected-unknown" id="dup-p1" onclick="toggleDupPeriode('P1')">P1</button>
+        <button type="button" class="genre-btn selected-unknown" id="dup-p2" onclick="toggleDupPeriode('P2')">P2</button>
+        <button type="button" class="genre-btn selected-unknown" id="dup-p3" onclick="toggleDupPeriode('P3')">P3</button>
+        <button type="button" class="genre-btn selected-unknown" id="dup-p4" onclick="toggleDupPeriode('P4')">P4</button>
+        <button type="button" class="genre-btn selected-unknown" id="dup-p5" onclick="toggleDupPeriode('P5')">P5</button>
+      </div>
+    </div>
+    <p style="font-size:0.72rem;color:var(--muted);margin-top:4px;margin-bottom:4px">La matière sera créée (vide, sans compétences) dans chaque période sélectionnée.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalMatiere');openModal('modalMenu')">← Retour</button>
+      <button class="btn-save" onclick="dupMatiere()">Dupliquer</button>
+    </div>
   </div>
 </div>
 
@@ -835,6 +874,77 @@ async function saveCompAllPeriodes() {
     await quickRefresh();
     showToast(`"${nom}" ajoutée sur ${aInserer.join(', ')} ✓`);
   } catch(e) { showToast("Erreur lors de l'ajout ⚠️"); console.error(e); }
+}
+
+
+// DUPLIQUER MATIÈRE
+let dupPeriodes = new Set(['P1','P2','P3','P4','P5']);
+
+function openDupMatiere() {
+  const sel = document.getElementById('dup-matiere');
+  const defaults = ['Sciences','Anglais','Français','Mathématiques','Histoire-Géo'];
+  const customs = [...new Set((competences||[]).map(c=>c.matiere))].filter(m=>m&&!defaults.includes(m)).sort((a,b)=>a.localeCompare(b));
+  sel.innerHTML = defaults.map(m=>`<option>${m}</option>`).join('') +
+    (customs.length ? `<option disabled>— Mes matières —</option>` : '') +
+    customs.map(m=>`<option>${m}</option>`).join('') +
+    `<option>Autre</option>`;
+  document.getElementById('dupMatiereCustomWrap').classList.add('hidden');
+  // Reset périodes — tout sélectionné
+  dupPeriodes = new Set(['P1','P2','P3','P4','P5']);
+  ['P1','P2','P3','P4','P5'].forEach(p => {
+    const btn = document.getElementById('dup-'+p.toLowerCase());
+    if(btn) btn.className = 'genre-btn selected-unknown';
+  });
+}
+
+function onDupMatiereChange() {
+  const isOther = document.getElementById('dup-matiere').value === 'Autre';
+  document.getElementById('dupMatiereCustomWrap').classList.toggle('hidden', !isOther);
+  if(!isOther) document.getElementById('dup-matiere-custom').value = '';
+}
+
+function toggleDupPeriode(p) {
+  const btn = document.getElementById('dup-'+p.toLowerCase());
+  if(dupPeriodes.has(p)) {
+    dupPeriodes.delete(p);
+    btn.className = 'genre-btn';
+  } else {
+    dupPeriodes.add(p);
+    btn.className = 'genre-btn selected-unknown';
+  }
+}
+
+async function dupMatiere() {
+  let matiere = document.getElementById('dup-matiere').value;
+  const custom = (document.getElementById('dup-matiere-custom')?.value||'').trim();
+  if(matiere === 'Autre') {
+    if(!custom) { showToast('Saisis le nom de la matière'); return; }
+    matiere = custom;
+  }
+  if(dupPeriodes.size === 0) { showToast('Sélectionne au moins une période'); return; }
+
+  // Trouver les périodes où cette matière n'existe pas encore (même vide)
+  const existantes = new Set(competences.filter(c=>c.matiere===matiere).map(c=>c.periode));
+  const aCreer = [...dupPeriodes].filter(p=>!existantes.has(p));
+
+  if(aCreer.length === 0) {
+    showToast('Cette matière existe déjà dans toutes les périodes sélectionnées');
+    return;
+  }
+
+  try {
+    // Créer une compétence placeholder vide pour "marquer" la matière dans la période
+    // On utilise un nom spécial qu'on masquera à l'affichage
+    const rows = aCreer.map(p => ({
+      matiere, nom: '(matière)', periode: p, date_eval: null, user_id: currentUser.id
+    }));
+    const { data, error } = await db.from('competences').insert(rows).select();
+    if(error) throw error;
+    competences.push(...data);
+    closeModal('modalMatiere');
+    await quickRefresh();
+    showToast(`"${matiere}" dupliquée sur ${aCreer.join(', ')} ✓`);
+  } catch(e) { showToast("Erreur lors de la duplication ⚠️"); console.error(e); }
 }
 
 init();
