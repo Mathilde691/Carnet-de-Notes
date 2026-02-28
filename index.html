@@ -441,7 +441,7 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
       <div class="menu-btn-icon" style="background:#eff6ff">👤</div>
       <div><div>Ajouter un élève</div><div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Prénom, nom, niveau, genre</div></div>
     </button>
-    <button class="menu-btn" onclick="closeModal('modalMenu');refreshMatiereSelect();openModal('modalComp')" style="margin-bottom:8px">
+    <button class="menu-btn" onclick="closeModal('modalMenu');openCompModal()" style="margin-bottom:8px">
       <div class="menu-btn-icon" style="background:#f0fdf4">📚</div>
       <div><div>Ajouter une compétence</div><div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Matière, libellé, période</div></div>
     </button>
@@ -546,7 +546,9 @@ async function loadAll() {
   (no || []).forEach(n => { notes[`${n.eleve_id}_${n.competence_id}`] = n.grade; });
 }
 async function quickRefresh() {
-  await loadAll(); renderAll();
+  await loadAll();
+  renderAll();
+  refreshMatiereSelect();
   if (document.getElementById('screen-detail')?.classList.contains('active') && window.currentDetailEleveId)
     showDetail(window.currentDetailEleveId);
 }
@@ -740,6 +742,15 @@ async function saveComp() {
 }
 
 // MODALS
+
+function openCompModal() {
+  refreshMatiereSelect();
+  // reset champs
+  document.getElementById('inp-comp').value = '';
+  document.getElementById('inp-date').value = '';
+  openModal('modalComp');
+}
+
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function refreshMatiereSelect() {
@@ -943,6 +954,7 @@ async function dupMatiere() {
     competences.push(...data);
     closeModal('modalMatiere');
     await quickRefresh();
+    refreshMatiereSelect();
     showToast(`"${matiere}" dupliquée sur ${aCreer.join(', ')} ✓`);
   } catch(e) { showToast("Erreur lors de la duplication ⚠️"); console.error(e); }
 }
