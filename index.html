@@ -1,724 +1,299 @@
 <!DOCTYPE html>
-
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#1a1a2e">
+<meta name="theme-color" content="#0f172a">
 <title>Carnet de Classe</title>
-<link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ============================================================
-   RESET & VARIABLES
-============================================================ */
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
 :root {
---bg: #f0ece4;
---surface: #fffef9;
---dark: #1a1a2e;
---green: #2d6a4f;
---green-light: #d8f3dc;
---accent: #e76f51;
---accent2: #f4a261;
---muted: #6b7280;
---border: #e5ddd0;
---radius: 14px;
---shadow: 0 4px 20px rgba(0,0,0,0.1);
-
---aplus: #2d6a4f;
---a:     #52b788;
---ea:    #f4a261;
---na:    #e76f51;
---abs:   #9ca3af;
+  --bg: #f1f5f9; --surface: #ffffff; --surface2: #f8fafc;
+  --dark: #0f172a; --dark2: #1e293b;
+  --green: #059669; --green-dk: #047857;
+  --accent: #f43f5e; --amber: #f59e0b; --indigo: #6366f1;
+  --muted: #64748b; --border: #e2e8f0;
+  --radius: 16px; --radius-lg: 22px;
+  --aplus: #059669; --a: #10b981; --ea: #f59e0b; --na: #f43f5e; --abs: #94a3b8;
+  --boy-bg: #eff6ff; --boy-border: #bfdbfe; --boy-text: #1d4ed8;
+  --girl-bg: #fff0f5; --girl-border: #fbcfe8; --girl-text: #be185d;
 }
+html, body { height: 100%; overflow: hidden; background: var(--bg); }
+body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--dark); display: flex; flex-direction: column; }
 
-html, body { height: 100%; overflow: hidden; }
-
-body {
-font-family: ‘Nunito’, sans-serif;
-background: var(–bg);
-color: var(–dark);
-display: flex;
-flex-direction: column;
-}
-
-/* ============================================================
-HEADER
-============================================================ */
+/* HEADER */
 .header {
-background: var(–dark);
-padding: 14px 16px 10px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-flex-shrink: 0;
-padding-top: max(14px, env(safe-area-inset-top));
+  background: var(--dark); padding: 0 16px;
+  padding-top: max(0px, env(safe-area-inset-top));
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; height: calc(56px + max(0px, env(safe-area-inset-top)));
+  position: relative; overflow: hidden;
 }
-.header-title {
-display: flex;
-align-items: center;
-gap: 10px;
-color: white;
-font-size: 1.1rem;
-font-weight: 800;
+.header::after {
+  content: ''; position: absolute; top: -30px; right: -20px;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%);
+  pointer-events: none;
 }
-.header-badge {
-background: var(–accent);
-font-size: 0.65rem;
-padding: 3px 8px;
-border-radius: 6px;
-font-weight: 700;
-letter-spacing: 0.5px;
-}
-.header-btn {
-background: rgba(255,255,255,0.12);
-border: none;
-color: white;
-border-radius: 10px;
-padding: 8px 12px;
-font-size: 1rem;
-cursor: pointer;
-font-family: ‘Nunito’, sans-serif;
-font-weight: 700;
-display: flex;
-align-items: center;
-gap: 6px;
-}
+.header-title { display: flex; align-items: center; gap: 10px; color: white; font-size: 1.05rem; font-weight: 800; letter-spacing: -0.3px; }
+.header-logo { width: 32px; height: 32px; background: linear-gradient(135deg, var(--green), var(--indigo)); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0; }
+.header-badge { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15); font-size: 0.6rem; padding: 3px 8px; border-radius: 6px; font-weight: 700; letter-spacing: 1px; color: rgba(255,255,255,0.7); }
+.header-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: white; border-radius: 10px; padding: 8px 14px; font-size: 0.82rem; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; }
 
-/* ============================================================
-BOTTOM NAV
-============================================================ */
-.bottom-nav {
-background: var(–dark);
-display: flex;
-border-top: 1px solid rgba(255,255,255,0.08);
-flex-shrink: 0;
-padding-bottom: max(8px, env(safe-area-inset-bottom));
-}
-.nav-item {
-flex: 1;
-display: flex;
-flex-direction: column;
-align-items: center;
-padding: 10px 4px 6px;
-color: rgba(255,255,255,0.4);
-cursor: pointer;
-border: none;
-background: none;
-font-family: ‘Nunito’, sans-serif;
-transition: color 0.2s;
-gap: 3px;
-}
-.nav-item.active { color: var(–accent2); }
-.nav-icon { font-size: 1.3rem; }
-.nav-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.3px; }
+/* BOTTOM NAV */
+.bottom-nav { background: var(--dark); display: flex; flex-shrink: 0; padding-bottom: max(6px, env(safe-area-inset-bottom)); border-top: 1px solid rgba(255,255,255,0.07); }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 4px 6px; color: rgba(255,255,255,0.35); cursor: pointer; border: none; background: none; font-family: 'Plus Jakarta Sans', sans-serif; transition: color 0.2s; gap: 3px; position: relative; }
+.nav-item.active { color: white; }
+.nav-item.active::before { content: ''; position: absolute; top: 0; left: 25%; right: 25%; height: 2px; background: linear-gradient(90deg, var(--green), var(--indigo)); border-radius: 0 0 2px 2px; }
+.nav-icon { font-size: 1.2rem; }
+.nav-label { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
 
-/* ============================================================
-MAIN CONTENT
-============================================================ */
-.main {
-flex: 1;
-overflow-y: auto;
-overflow-x: hidden;
--webkit-overflow-scrolling: touch;
-}
-
-/* SCREENS */
-.screen { display: none; padding: 16px; }
+/* MAIN */
+.main { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; background: var(--bg); }
+.screen { display: none; padding: 16px 14px; }
 .screen.active { display: block; }
 
-/* ============================================================
-STATS CARDS
-============================================================ */
-.stats-grid {
-display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 10px;
-margin-bottom: 16px;
-}
-.stat-card {
-background: var(–surface);
-border-radius: var(–radius);
-padding: 14px 16px;
-position: relative;
-overflow: hidden;
-border: 1.5px solid var(–border);
-}
-.stat-card::before {
-content: ‘’;
-position: absolute;
-top: 0; left: 0; right: 0;
-height: 4px;
-}
-.stat-card.aplus::before { background: var(–aplus); }
-.stat-card.a::before     { background: var(–a); }
-.stat-card.ea::before    { background: var(–ea); }
-.stat-card.na::before    { background: var(–na); }
-.stat-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(–muted); }
-.stat-value { font-size: 2rem; font-weight: 800; margin: 4px 0 0; }
-.stat-card.aplus .stat-value { color: var(–aplus); }
-.stat-card.a .stat-value     { color: var(–a); }
-.stat-card.ea .stat-value    { color: var(–ea); }
-.stat-card.na .stat-value    { color: var(–na); }
-
 /* SECTION TITLE */
-.section-title {
-font-size: 0.7rem;
-font-weight: 800;
-text-transform: uppercase;
-letter-spacing: 1.5px;
-color: var(–muted);
-margin: 20px 0 10px;
-}
+.section-title { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.8px; color: var(--muted); margin: 18px 0 10px; }
+.section-title:first-child { margin-top: 2px; }
 
-/* ============================================================
-FILTER BAR
-============================================================ */
-.filter-bar {
-display: flex;
-gap: 8px;
-overflow-x: auto;
-padding-bottom: 4px;
-margin-bottom: 14px;
-scrollbar-width: none;
-}
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 6px; }
+.stat-card { background: var(--surface); border-radius: var(--radius); padding: 14px; display: flex; align-items: center; gap: 12px; border: 1.5px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.stat-icon { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+.stat-card.aplus .stat-icon { background: #d1fae5; }
+.stat-card.a     .stat-icon { background: #d1fae5; }
+.stat-card.ea    .stat-icon { background: #fef3c7; }
+.stat-card.na    .stat-icon { background: #ffe4e6; }
+.stat-text { display: flex; flex-direction: column; }
+.stat-value { font-size: 1.7rem; font-weight: 800; line-height: 1; }
+.stat-card.aplus .stat-value { color: var(--aplus); }
+.stat-card.a     .stat-value { color: var(--a); }
+.stat-card.ea    .stat-value { color: var(--ea); }
+.stat-card.na    .stat-value { color: var(--na); }
+.stat-label { font-size: 0.62rem; font-weight: 600; color: var(--muted); margin-top: 2px; }
+
+/* FILTER */
+.filter-bar { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 2px; margin-bottom: 12px; scrollbar-width: none; }
 .filter-bar::-webkit-scrollbar { display: none; }
-.filter-chip {
-flex-shrink: 0;
-padding: 7px 14px;
-border-radius: 20px;
-border: 1.5px solid var(–border);
-background: var(–surface);
-font-family: ‘Nunito’, sans-serif;
-font-size: 0.78rem;
-font-weight: 700;
-color: var(–muted);
-cursor: pointer;
-}
-.filter-chip.active {
-background: var(–dark);
-color: white;
-border-color: var(–dark);
-}
+.filter-chip { flex-shrink: 0; padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.75rem; font-weight: 700; color: var(--muted); cursor: pointer; }
+.filter-chip.active { background: var(--dark); color: white; border-color: var(--dark); }
 
-/* ============================================================
-ÉLÈVE CARDS
-============================================================ */
-.eleve-card {
-background: var(–surface);
-border-radius: var(–radius);
-padding: 14px 16px;
-margin-bottom: 10px;
-border: 1.5px solid var(–border);
-display: flex;
-align-items: center;
-justify-content: space-between;
-cursor: pointer;
-transition: transform 0.15s, box-shadow 0.15s;
--webkit-tap-highlight-color: transparent;
-}
-.eleve-card:active { transform: scale(0.98); }
-.eleve-info { flex: 1; }
-.eleve-name { font-weight: 800; font-size: 0.95rem; }
-.eleve-sub { font-size: 0.72rem; color: var(–muted); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
-.niveau-badge {
-font-size: 0.6rem;
-padding: 2px 7px;
-border-radius: 5px;
-font-weight: 800;
-}
+/* NIVEAU SEPARATOR */
+.niveau-sep { display: flex; align-items: center; gap: 10px; margin: 14px 0 8px; }
+.niveau-sep-line { flex: 1; height: 1px; background: var(--border); }
+.niveau-sep-label { font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; padding: 3px 10px; border-radius: 20px; }
+.niveau-sep-label.ce2 { background: #dbeafe; color: #1d4ed8; }
+.niveau-sep-label.cm1 { background: #ede9fe; color: #7c3aed; }
+
+/* ELEVE CARDS */
+.eleve-card { border-radius: var(--radius); padding: 12px 13px; margin-bottom: 8px; display: flex; align-items: center; cursor: pointer; transition: transform 0.12s; border: 1.5px solid; position: relative; overflow: hidden; }
+.eleve-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.eleve-card.boy    { background: var(--boy-bg);  border-color: var(--boy-border);  }
+.eleve-card.boy::before  { background: var(--boy-text); }
+.eleve-card.girl   { background: var(--girl-bg); border-color: var(--girl-border); }
+.eleve-card.girl::before { background: var(--girl-text); }
+.eleve-card.unknown { background: var(--surface); border-color: var(--border); }
+.eleve-card.unknown::before { background: var(--muted); }
+.eleve-card:active { transform: scale(0.985); }
+.eleve-avatar { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; margin-right: 11px; }
+.eleve-card.boy   .eleve-avatar { background: #dbeafe; }
+.eleve-card.girl  .eleve-avatar { background: #fce7f3; }
+.eleve-card.unknown .eleve-avatar { background: var(--surface2); }
+.eleve-info { flex: 1; min-width: 0; }
+.eleve-name { font-weight: 800; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eleve-sub { font-size: 0.68rem; color: var(--muted); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+.niveau-badge { font-size: 0.58rem; padding: 2px 7px; border-radius: 5px; font-weight: 800; }
 .ce2 { background: #dbeafe; color: #1d4ed8; }
 .cm1 { background: #ede9fe; color: #7c3aed; }
-.eleve-score {
-font-size: 1.3rem;
-font-weight: 800;
-min-width: 48px;
-text-align: right;
-}
-.mini-grades {
-display: flex;
-gap: 4px;
-margin-top: 6px;
-flex-wrap: wrap;
-}
-.mini-pill {
-font-size: 0.6rem;
-font-weight: 800;
-padding: 2px 6px;
-border-radius: 5px;
-color: white;
-}
+.mini-grades { display: flex; gap: 3px; margin-top: 5px; flex-wrap: wrap; }
+.mini-pill { font-size: 0.58rem; font-weight: 800; padding: 2px 6px; border-radius: 5px; color: white; }
+.eleve-actions { display: flex; align-items: center; gap: 4px; margin-left: 8px; flex-shrink: 0; }
+.icon-btn { border: none; background: rgba(0,0,0,0.05); width: 32px; height: 32px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.icon-btn.danger { background: #fff1f2; color: var(--accent); }
 
-/* ============================================================
-GRILLE DE NOTES
-============================================================ */
-.grille-table-wrap {
-overflow-x: auto;
-border-radius: var(–radius);
-border: 1.5px solid var(–border);
-background: var(–surface);
--webkit-overflow-scrolling: touch;
-}
+/* GRILLE */
+.grille-table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--surface); -webkit-overflow-scrolling: touch; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
 table { border-collapse: collapse; font-size: 0.72rem; }
-.th-name {
-position: sticky;
-left: 0;
-background: var(–dark);
-color: white;
-padding: 10px 10px;
-text-align: left;
-min-width: 120px;
-z-index: 10;
-font-weight: 800;
-font-size: 0.7rem;
-}
-th {
-background: var(–dark);
-color: rgba(255,255,255,0.8);
-padding: 8px 6px;
-text-align: center;
-white-space: nowrap;
-font-weight: 700;
-font-size: 0.65rem;
-max-width: 70px;
-}
-.th-sub {
-font-size: 0.6rem;
-color: rgba(255,255,255,0.5);
-font-weight: 400;
-display: block;
-margin-top: 2px;
-}
-.td-name {
-position: sticky;
-left: 0;
-background: var(–surface);
-padding: 8px 10px;
-font-weight: 700;
-font-size: 0.72rem;
-border-right: 2px solid var(–border);
-border-bottom: 1px solid var(–border);
-white-space: nowrap;
-z-index: 5;
-}
-.td-grade {
-padding: 6px 4px;
-text-align: center;
-border-bottom: 1px solid var(–border);
-}
-.grade-pill {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-width: 36px;
-height: 26px;
-border-radius: 6px;
-font-size: 0.65rem;
-font-weight: 800;
-cursor: pointer;
-transition: transform 0.1s;
-}
-.grade-pill:active { transform: scale(0.9); }
-.grade-pill.APLUS { background: var(–aplus); color: white; }
-.grade-pill.A     { background: var(–a);     color: white; }
-.grade-pill.EA    { background: var(–ea);    color: white; }
-.grade-pill.NA    { background: var(–na);    color: white; }
-.grade-pill.ABS   { background: var(–abs);   color: white; }
-.grade-pill.EMPTY { background: #ede9e0; color: #bbb; font-size: 0.8rem; }
+.th-name { position: sticky; left: 0; background: var(--dark2); color: white; padding: 11px 12px; text-align: left; min-width: 115px; z-index: 10; font-weight: 800; font-size: 0.68rem; border-right: 2px solid rgba(255,255,255,0.08); }
+.th-matiere { color: white; font-weight: 800; font-size: 0.62rem; letter-spacing: 0.8px; text-transform: uppercase; padding: 9px 8px 7px; text-align: center; }
+.th-matiere.mat-Sciences       { background: #064e3b; }
+.th-matiere.mat-Anglais        { background: #1e3a8a; }
+.th-matiere.mat-Francais       { background: #4c1d95; }
+.th-matiere.mat-Mathematiques  { background: #7c2d12; }
+.th-matiere.mat-HistoireGeo    { background: #713f12; }
+.th-matiere.mat-other          { background: #1e293b; }
+.td-mat-first  { border-left: 3px solid rgba(0,0,0,0.1) !important; }
+.th-mat-first  { border-left: 3px solid rgba(0,0,0,0.15) !important; }
+th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8px 6px 9px; text-align: center; white-space: normal; font-weight: 600; font-size: 0.6rem; max-width: 68px; word-break: break-word; line-height: 1.3; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.th-date { font-size: 0.52rem; color: rgba(255,255,255,0.4); display: block; margin-top: 2px; font-weight: 400; }
+.td-name { position: sticky; left: 0; background: var(--surface); padding: 7px 10px; font-weight: 700; font-size: 0.7rem; border-right: 2px solid var(--border); border-bottom: 1px solid var(--border); white-space: nowrap; z-index: 5; }
+.td-name.boy-row  { background: var(--boy-bg); }
+.td-name.girl-row { background: var(--girl-bg); }
+.td-grade { padding: 5px 4px; text-align: center; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.tr-niveau-sep td { background: var(--bg); padding: 4px 12px; font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); border-bottom: 1px solid var(--border); }
 
-/* MATIERE HEADER */
-.th-matiere {
-background: #2a2a40;
-color: rgba(255,255,255,0.9);
-font-weight: 800;
-font-size: 0.65rem;
-letter-spacing: 0.5px;
-text-transform: uppercase;
-}
+/* GRADE PILLS */
+.grade-pill { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 24px; border-radius: 7px; font-size: 0.62rem; font-weight: 800; cursor: pointer; transition: transform 0.1s; letter-spacing: 0.3px; }
+.grade-pill:active { transform: scale(0.88); }
+.grade-pill.APLUS { background: var(--aplus); color: white; }
+.grade-pill.A     { background: var(--a);     color: white; }
+.grade-pill.EA    { background: var(--ea);    color: white; }
+.grade-pill.NA    { background: var(--na);    color: white; }
+.grade-pill.ABS   { background: var(--abs);   color: white; }
+.grade-pill.EMPTY { background: #f1f5f9; color: #cbd5e1; border: 1.5px dashed #e2e8f0; font-size: 0.75rem; }
 
-/* ============================================================
-GRADE SELECTOR BOTTOM SHEET
-============================================================ */
-.overlay {
-display: none;
-position: fixed;
-inset: 0;
-background: rgba(0,0,0,0.5);
-z-index: 100;
-align-items: flex-end;
-}
+/* BOTTOM SHEET / OVERLAY */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 100; align-items: flex-end; backdrop-filter: blur(4px); }
 .overlay.open { display: flex; }
-.bottom-sheet {
-background: var(–surface);
-border-radius: 20px 20px 0 0;
-padding: 16px 20px;
-padding-bottom: max(24px, env(safe-area-inset-bottom));
-width: 100%;
-animation: slideUp 0.25s ease;
-}
-@keyframes slideUp {
-from { transform: translateY(100%); }
-to   { transform: translateY(0); }
-}
-.sheet-handle {
-width: 40px;
-height: 4px;
-background: var(–border);
-border-radius: 2px;
-margin: 0 auto 16px;
-}
-.sheet-title { font-size: 0.85rem; font-weight: 800; margin-bottom: 16px; color: var(–muted); text-transform: uppercase; letter-spacing: 1px; }
-.grade-options {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-gap: 10px;
-margin-bottom: 12px;
-}
-.grade-option-btn {
-padding: 16px 8px;
-border-radius: 12px;
-border: none;
-color: white;
-font-family: ‘Nunito’, sans-serif;
-font-size: 1rem;
-font-weight: 800;
-cursor: pointer;
-display: flex;
-flex-direction: column;
-align-items: center;
-gap: 4px;
-transition: transform 0.1s;
-}
-.grade-option-btn:active { transform: scale(0.94); }
-.grade-option-btn .grade-desc { font-size: 0.6rem; font-weight: 600; opacity: 0.85; }
-.grade-option-btn.APLUS { background: var(–aplus); }
-.grade-option-btn.A     { background: var(–a); }
-.grade-option-btn.EA    { background: var(–ea); }
-.grade-option-btn.NA    { background: var(–na); }
-.grade-option-btn.ABS   { background: var(–abs); }
-.btn-erase {
-width: 100%;
-padding: 14px;
-border-radius: 12px;
-border: 1.5px solid var(–border);
-background: var(–bg);
-font-family: ‘Nunito’, sans-serif;
-font-size: 0.9rem;
-font-weight: 700;
-color: var(–muted);
-cursor: pointer;
-}
+.bottom-sheet { background: var(--surface); border-radius: 24px 24px 0 0; padding: 16px 18px; padding-bottom: max(24px, env(safe-area-inset-bottom)); width: 100%; animation: slideUp 0.22s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.sheet-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 14px; }
+.sheet-title { font-size: 0.78rem; font-weight: 800; margin-bottom: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.grade-options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 10px; }
+.grade-option-btn { padding: 14px 4px 10px; border-radius: 14px; border: none; color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; font-weight: 800; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: transform 0.1s; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.grade-option-btn:active { transform: scale(0.93); }
+.grade-desc { font-size: 0.52rem; font-weight: 600; opacity: 0.85; line-height: 1.2; text-align: center; }
+.grade-option-btn.APLUS { background: linear-gradient(135deg, #059669, #047857); }
+.grade-option-btn.A     { background: linear-gradient(135deg, #10b981, #059669); }
+.grade-option-btn.EA    { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.grade-option-btn.NA    { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+.grade-option-btn.ABS   { background: linear-gradient(135deg, #94a3b8, #64748b); }
+.btn-erase { width: 100%; padding: 13px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; font-weight: 700; color: var(--muted); cursor: pointer; margin-top: 4px; }
 
-/* ============================================================
-MODAL (ajout élève / compétence)
-============================================================ */
-.modal-overlay {
-display: none;
-position: fixed;
-inset: 0;
-background: rgba(0,0,0,0.55);
-z-index: 200;
-align-items: flex-end;
-padding: 0;
-}
+/* MODALS */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 200; align-items: flex-end; backdrop-filter: blur(4px); }
 .modal-overlay.open { display: flex; }
-.modal-sheet {
-background: var(–surface);
-border-radius: 20px 20px 0 0;
-padding: 20px 20px;
-padding-bottom: max(28px, env(safe-area-inset-bottom));
-width: 100%;
-max-height: 90vh;
-overflow-y: auto;
-animation: slideUp 0.25s ease;
-}
-.modal-title {
-font-size: 1.1rem;
-font-weight: 800;
-margin-bottom: 20px;
-}
-.form-group { margin-bottom: 14px; }
-.form-label {
-display: block;
-font-size: 0.7rem;
-font-weight: 800;
-text-transform: uppercase;
-letter-spacing: 0.8px;
-color: var(–muted);
-margin-bottom: 6px;
-}
-.form-input {
-width: 100%;
-padding: 13px 14px;
-border: 1.5px solid var(–border);
-border-radius: 10px;
-font-family: ‘Nunito’, sans-serif;
-font-size: 1rem;
-background: white;
-color: var(–dark);
--webkit-appearance: none;
-}
-.form-input:focus { outline: none; border-color: var(–green); }
+.modal-sheet { background: var(--surface); border-radius: 24px 24px 0 0; padding: 20px 18px; padding-bottom: max(28px, env(safe-area-inset-bottom)); width: 100%; max-height: 92vh; overflow-y: auto; animation: slideUp 0.22s cubic-bezier(0.34,1.56,0.64,1); }
+.modal-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 18px; letter-spacing: -0.3px; }
+.form-group { margin-bottom: 12px; }
+.form-label { display: block; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 6px; }
+.form-input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; background: var(--surface2); color: var(--dark); -webkit-appearance: none; }
+.form-input:focus { outline: none; border-color: var(--green); background: white; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-.btn-cancel {
-flex: 1;
-padding: 14px;
-border-radius: 10px;
-border: 1.5px solid var(–border);
-background: var(–bg);
-font-family: ‘Nunito’, sans-serif;
-font-size: 0.9rem;
-font-weight: 700;
-cursor: pointer;
-color: var(–dark);
-}
-.btn-save {
-flex: 2;
-padding: 14px;
-border-radius: 10px;
-border: none;
-background: var(–green);
-color: white;
-font-family: ‘Nunito’, sans-serif;
-font-size: 0.9rem;
-font-weight: 800;
-cursor: pointer;
-}
+.modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+.btn-cancel { flex: 1; padding: 13px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; color: var(--muted); }
+.btn-save { flex: 2; padding: 13px; border-radius: 10px; border: none; background: linear-gradient(135deg, var(--green), var(--green-dk)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(5,150,105,0.35); }
 
-/* ============================================================
-FAB
-============================================================ */
-.fab {
-position: fixed;
-bottom: calc(70px + max(8px, env(safe-area-inset-bottom)));
-right: 16px;
-width: 56px;
-height: 56px;
-border-radius: 50%;
-background: var(–accent);
-color: white;
-border: none;
-font-size: 1.5rem;
-display: flex;
-align-items: center;
-justify-content: center;
-box-shadow: 0 4px 20px rgba(231,111,81,0.5);
-cursor: pointer;
-z-index: 50;
-transition: transform 0.15s;
-}
-.fab:active { transform: scale(0.92); }
+/* GENRE TOGGLE */
+.genre-toggle { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.genre-btn { padding: 11px 8px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface2); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; text-align: center; color: var(--muted); }
+.genre-btn.selected-boy  { background: var(--boy-bg);  border-color: var(--boy-border);  color: var(--boy-text); }
+.genre-btn.selected-girl { background: var(--girl-bg); border-color: var(--girl-border); color: var(--girl-text); }
+.genre-btn.selected-unknown { background: var(--dark); border-color: var(--dark); color: white; }
 
-/* ============================================================
-TOAST
-============================================================ */
-.toast {
-position: fixed;
-bottom: calc(80px + max(8px, env(safe-area-inset-bottom)));
-left: 16px;
-right: 16px;
-background: var(–dark);
-color: white;
-padding: 14px 18px;
-border-radius: 12px;
-font-size: 0.88rem;
-font-weight: 700;
-z-index: 300;
-transform: translateY(20px);
-opacity: 0;
-transition: all 0.3s;
-text-align: center;
-}
+/* DETAIL ELEVE */
+.back-btn { display: flex; align-items: center; gap: 6px; color: var(--green); font-weight: 700; font-size: 0.85rem; cursor: pointer; margin-bottom: 14px; border: none; background: none; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+.detail-header { background: var(--surface); border-radius: var(--radius); border: 1.5px solid var(--border); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; }
+.detail-avatar { width: 52px; height: 52px; border-radius: 15px; font-size: 1.6rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.detail-avatar.boy     { background: var(--boy-bg); }
+.detail-avatar.girl    { background: var(--girl-bg); }
+.detail-avatar.unknown { background: var(--surface2); }
+.detail-name { font-size: 1.1rem; font-weight: 800; }
+.detail-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.detail-card { background: var(--surface); border-radius: var(--radius); border: 1.5px solid var(--border); margin-bottom: 10px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+.detail-matiere-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.detail-matiere-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); }
+.detail-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.detail-row:last-child { border-bottom: none; }
+.detail-comp { font-size: 0.83rem; font-weight: 600; flex: 1; padding-right: 10px; line-height: 1.3; }
+.detail-comp-date { font-size: 0.6rem; color: var(--muted); display: block; margin-top: 2px; }
+
+/* MENU BTN */
+.menu-btn { width: 100%; padding: 15px 16px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--surface2); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--dark); cursor: pointer; text-align: left; display: flex; align-items: center; gap: 12px; }
+.menu-btn:active { background: var(--border); }
+.menu-btn-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+
+/* FAB */
+.fab { position: fixed; bottom: calc(66px + max(6px, env(safe-area-inset-bottom))); right: 14px; width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, var(--accent), #e11d48); color: white; border: none; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(244,63,94,0.45); cursor: pointer; z-index: 50; transition: transform 0.15s; }
+.fab:active { transform: scale(0.9); }
+
+/* TOAST */
+.toast { position: fixed; bottom: calc(76px + max(6px, env(safe-area-inset-bottom))); left: 14px; right: 14px; background: var(--dark2); color: white; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; z-index: 300; transform: translateY(20px); opacity: 0; transition: all 0.25s; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
 .toast.show { transform: translateY(0); opacity: 1; }
 
-/* ============================================================
-LOADING
-============================================================ */
-.loading-screen {
-position: fixed;
-inset: 0;
-background: var(–dark);
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-gap: 16px;
-z-index: 1000;
-color: white;
-}
+/* LOADING / LOGIN */
+.loading-screen { position: fixed; inset: 0; background: var(--dark); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 1000; color: white; }
 .loading-screen.hidden { display: none; }
-.spinner {
-width: 40px; height: 40px;
-border: 4px solid rgba(255,255,255,0.2);
-border-top-color: var(–accent2);
-border-radius: 50%;
-animation: spin 0.8s linear infinite;
-}
+.loading-logo { width: 64px; height: 64px; background: linear-gradient(135deg, var(--green), var(--indigo)); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 4px; }
+.spinner { width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.15); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.loading-title { font-size: 1.2rem; font-weight: 800; }
-.loading-sub { font-size: 0.8rem; opacity: 0.6; }
-
-/* ============================================================
-CONNEXION SCREEN
-============================================================ */
-.login-screen {
-position: fixed;
-inset: 0;
-background: var(–dark);
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-padding: 32px 24px;
-gap: 20px;
-z-index: 900;
-}
+.loading-title { font-size: 1.1rem; font-weight: 800; }
+.loading-sub   { font-size: 0.75rem; opacity: 0.5; }
+.login-screen { position: fixed; inset: 0; background: var(--dark); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; gap: 14px; z-index: 900; background-image: radial-gradient(ellipse at 20% 20%, rgba(99,102,241,0.15) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(5,150,105,0.12) 0%, transparent 60%); }
 .login-screen.hidden { display: none; }
-.login-logo { font-size: 2.5rem; }
-.login-title { color: white; font-size: 1.6rem; font-weight: 800; text-align: center; }
-.login-sub { color: rgba(255,255,255,0.5); font-size: 0.85rem; text-align: center; }
-.login-input {
-width: 100%;
-max-width: 320px;
-padding: 16px;
-border-radius: 12px;
-border: none;
-font-family: ‘Nunito’, sans-serif;
-font-size: 1rem;
-background: rgba(255,255,255,0.1);
-color: white;
--webkit-appearance: none;
-}
-.login-input::placeholder { color: rgba(255,255,255,0.4); }
-.login-input:focus { outline: none; background: rgba(255,255,255,0.15); }
-.login-btn {
-width: 100%;
-max-width: 320px;
-padding: 16px;
-border-radius: 12px;
-border: none;
-background: var(–accent);
-color: white;
-font-family: ‘Nunito’, sans-serif;
-font-size: 1rem;
-font-weight: 800;
-cursor: pointer;
-}
-.login-error { color: var(–ea); font-size: 0.82rem; font-weight: 700; }
+.login-logo-wrap { width: 72px; height: 72px; background: linear-gradient(135deg, var(--green), var(--indigo)); border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin-bottom: 6px; box-shadow: 0 12px 40px rgba(99,102,241,0.3); }
+.login-title { color: white; font-size: 1.5rem; font-weight: 800; text-align: center; }
+.login-sub { color: rgba(255,255,255,0.45); font-size: 0.8rem; text-align: center; margin-bottom: 8px; }
+.login-input { width: 100%; max-width: 320px; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; background: rgba(255,255,255,0.07); color: white; -webkit-appearance: none; }
+.login-input::placeholder { color: rgba(255,255,255,0.3); }
+.login-input:focus { outline: none; background: rgba(255,255,255,0.12); }
+.login-btn { width: 100%; max-width: 320px; padding: 15px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--green), var(--indigo)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; font-weight: 800; cursor: pointer; margin-top: 4px; }
+.login-error { color: #fda4af; font-size: 0.8rem; font-weight: 700; }
 
-/* ELEVE DETAIL */
-.back-btn {
-display: flex;
-align-items: center;
-gap: 6px;
-color: var(–green);
-font-weight: 700;
-font-size: 0.88rem;
-cursor: pointer;
-margin-bottom: 16px;
-border: none;
-background: none;
-padding: 0;
-font-family: ‘Nunito’, sans-serif;
-}
-.detail-card {
-background: var(–surface);
-border-radius: var(–radius);
-border: 1.5px solid var(–border);
-padding: 16px;
-margin-bottom: 10px;
-}
-.detail-matiere {
-font-size: 0.65rem;
-font-weight: 800;
-text-transform: uppercase;
-letter-spacing: 1px;
-color: var(–muted);
-margin-bottom: 8px;
-}
-.detail-row {
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 8px 0;
-border-bottom: 1px solid var(–border);
-}
-.detail-row:last-child { border-bottom: none; }
-.detail-comp { font-size: 0.85rem; font-weight: 600; flex: 1; padding-right: 10px; }
+.hidden { display: none !important; }
 </style>
-
 </head>
 <body>
 
 <!-- LOADING -->
-
 <div class="loading-screen" id="loadingScreen">
+  <div class="loading-logo">🌿</div>
   <div class="spinner"></div>
-  <div class="loading-title">🌿 Carnet de Classe</div>
-  <div class="loading-sub">Chargement des données…</div>
+  <div class="loading-title">Carnet de Classe</div>
+  <div class="loading-sub">Chargement en cours…</div>
 </div>
 
 <!-- LOGIN -->
-
 <div class="login-screen hidden" id="loginScreen">
-  <div class="login-logo">🌿</div>
+  <div class="login-logo-wrap">🌿</div>
   <div class="login-title">Carnet de Classe</div>
-  <div class="login-sub">Connectez-vous pour accéder à vos données</div>
+  <div class="login-sub">CE2 · CM1 — Espace enseignant</div>
   <input class="login-input" id="loginEmail" type="email" placeholder="votre@email.com" autocomplete="email">
   <input class="login-input" id="loginPassword" type="password" placeholder="Mot de passe" autocomplete="current-password">
-  <button class="login-btn" onclick="doLogin()">Se connecter</button>
+  <button class="login-btn" onclick="doLogin()">Se connecter →</button>
   <div class="login-error hidden" id="loginError"></div>
 </div>
 
 <!-- HEADER -->
-
 <div class="header" id="appHeader" style="display:none">
   <div class="header-title">
-    🌿 Carnet
-    <span class="header-badge">CE2·CM1</span>
+    <div class="header-logo">🌿</div>
+    Carnet <span class="header-badge">CE2 · CM1</span>
   </div>
-  <button class="header-btn" id="headerActionBtn">+ Ajouter</button>
+  <button class="header-btn" onclick="openAddMenu()">＋ Ajouter</button>
 </div>
 
 <!-- MAIN -->
-
 <div class="main" id="appMain" style="display:none">
 
   <!-- ACCUEIL -->
-
   <div class="screen active" id="screen-accueil">
     <div class="section-title">Tableau de bord</div>
     <div class="stats-grid">
-      <div class="stat-card aplus"><div class="stat-label">A+ Dépassée</div><div class="stat-value" id="stat-aplus">—</div></div>
-      <div class="stat-card a"><div class="stat-label">A Acquis</div><div class="stat-value" id="stat-a">—</div></div>
-      <div class="stat-card ea"><div class="stat-label">EA En cours</div><div class="stat-value" id="stat-ea">—</div></div>
-      <div class="stat-card na"><div class="stat-label">NA Non acquis</div><div class="stat-value" id="stat-na">—</div></div>
+      <div class="stat-card aplus"><div class="stat-icon">🏆</div><div class="stat-text"><div class="stat-value" id="stat-aplus">—</div><div class="stat-label">A+ Dépassée</div></div></div>
+      <div class="stat-card a"><div class="stat-icon">✅</div><div class="stat-text"><div class="stat-value" id="stat-a">—</div><div class="stat-label">A Acquis</div></div></div>
+      <div class="stat-card ea"><div class="stat-icon">📈</div><div class="stat-text"><div class="stat-value" id="stat-ea">—</div><div class="stat-label">EA En cours</div></div></div>
+      <div class="stat-card na"><div class="stat-icon">⚠️</div><div class="stat-text"><div class="stat-value" id="stat-na">—</div><div class="stat-label">NA Non acquis</div></div></div>
     </div>
-
-
-<div class="section-title">Élèves</div>
-<div class="filter-bar">
-  <button class="filter-chip active" onclick="filterEleves(this,'all')">Tous</button>
-  <button class="filter-chip" onclick="filterEleves(this,'CE2')">CE2</button>
-  <button class="filter-chip" onclick="filterEleves(this,'CM1')">CM1</button>
-</div>
-<div id="elevesList"></div>
-
-
+    <div class="section-title">Élèves</div>
+    <div class="filter-bar">
+      <button class="filter-chip active" onclick="filterEleves(this,'all')">Tous</button>
+      <button class="filter-chip" onclick="filterEleves(this,'CE2')">CE2</button>
+      <button class="filter-chip" onclick="filterEleves(this,'CM1')">CM1</button>
+    </div>
+    <div id="elevesList"></div>
   </div>
 
   <!-- GRILLE -->
-
   <div class="screen" id="screen-grille">
-    <div class="section-title">Filtrer</div>
-    <div class="filter-bar" id="periodeFilter">
-      <button class="filter-chip active" onclick="filterPeriode(this,'all')">Toutes périodes</button>
+    <div class="section-title">Période</div>
+    <div class="filter-bar">
+      <button class="filter-chip active" onclick="filterPeriode(this,'all')">Toutes</button>
       <button class="filter-chip" onclick="filterPeriode(this,'P1')">P1</button>
       <button class="filter-chip" onclick="filterPeriode(this,'P2')">P2</button>
       <button class="filter-chip" onclick="filterPeriode(this,'P3')">P3</button>
@@ -733,41 +308,31 @@ border-bottom: 1px solid var(–border);
     </div>
   </div>
 
-  <!-- BILAN ÉLÈVE (detail) -->
-
+  <!-- DETAIL -->
   <div class="screen" id="screen-detail">
-    <button class="back-btn" onclick="showScreen('accueil')">← Retour</button>
+    <button class="back-btn" onclick="showScreen('accueil')">← Retour à la liste</button>
     <div id="detailContent"></div>
   </div>
 
 </div>
 
 <!-- BOTTOM NAV -->
-
 <div class="bottom-nav" id="appNav" style="display:none">
-  <button class="nav-item active" onclick="switchNav(this,'accueil')">
-    <span class="nav-icon">🏠</span>
-    <span class="nav-label">Accueil</span>
-  </button>
-  <button class="nav-item" onclick="switchNav(this,'grille')">
-    <span class="nav-icon">📊</span>
-    <span class="nav-label">Grille</span>
-  </button>
+  <button class="nav-item active" onclick="switchNav(this,'accueil')"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
+  <button class="nav-item" onclick="switchNav(this,'grille')"><span class="nav-icon">📊</span><span class="nav-label">Grille</span></button>
 </div>
 
 <!-- FAB -->
-
 <button class="fab" id="fabBtn" style="display:none" onclick="openAddMenu()">＋</button>
 
-<!-- GRADE SELECTOR SHEET -->
-
+<!-- GRADE SHEET -->
 <div class="overlay" id="gradeOverlay" onclick="closeGradeSheet()">
   <div class="bottom-sheet" onclick="event.stopPropagation()">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="sheetTitle">Choisir une note</div>
     <div class="grade-options">
-      <button class="grade-option-btn APLUS" onclick="selectGrade('A+')">A+<span class="grade-desc">Excellent</span></button>
-      <button class="grade-option-btn A"     onclick="selectGrade('A')">A<span class="grade-desc">Satisfaisant</span></button>
+      <button class="grade-option-btn APLUS" onclick="selectGrade('A+')">A+<span class="grade-desc">Dépassée</span></button>
+      <button class="grade-option-btn A"     onclick="selectGrade('A')">A<span class="grade-desc">Acquis</span></button>
       <button class="grade-option-btn EA"    onclick="selectGrade('EA')">EA<span class="grade-desc">En cours</span></button>
       <button class="grade-option-btn NA"    onclick="selectGrade('NA')">NA<span class="grade-desc">Non acquis</span></button>
       <button class="grade-option-btn ABS"   onclick="selectGrade('ABS')">ABS<span class="grade-desc">Absent</span></button>
@@ -776,27 +341,25 @@ border-bottom: 1px solid var(–border);
   </div>
 </div>
 
-<!-- MODAL AJOUT ÉLÈVE -->
-
+<!-- MODAL ELEVE -->
 <div class="modal-overlay" id="modalEleve">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-title">👤 Nouvel élève</div>
     <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Prénom</label>
-        <input class="form-input" id="inp-prenom" placeholder="Marie">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Nom</label>
-        <input class="form-input" id="inp-nom" placeholder="DUPONT">
-      </div>
+      <div class="form-group"><label class="form-label">Prénom</label><input class="form-input" id="inp-prenom" placeholder="Marie"></div>
+      <div class="form-group"><label class="form-label">Nom</label><input class="form-input" id="inp-nom" placeholder="DUPONT"></div>
     </div>
     <div class="form-group">
       <label class="form-label">Niveau</label>
-      <select class="form-input" id="inp-niveau">
-        <option value="CE2">CE2</option>
-        <option value="CM1">CM1</option>
-      </select>
+      <select class="form-input" id="inp-niveau"><option value="CE2">CE2</option><option value="CM1">CM1</option></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Genre</label>
+      <div class="genre-toggle">
+        <button type="button" class="genre-btn" id="genre-boy" onclick="selectGenre('M')">👦 Garçon</button>
+        <button type="button" class="genre-btn" id="genre-girl" onclick="selectGenre('F')">👧 Fille</button>
+        <button type="button" class="genre-btn selected-unknown" id="genre-unknown" onclick="selectGenre('')">❓ N/A</button>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modalEleve')">Annuler</button>
@@ -805,41 +368,30 @@ border-bottom: 1px solid var(–border);
   </div>
 </div>
 
-<!-- MODAL AJOUT COMPÉTENCE -->
-
+<!-- MODAL COMP -->
 <div class="modal-overlay" id="modalComp">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-title">📚 Nouvelle compétence</div>
     <div class="form-group">
       <label class="form-label">Matière</label>
-      <select class="form-input" id="inp-matiere">
-        <option>Sciences</option>
-        <option>Anglais</option>
-        <option>Français</option>
-        <option>Mathématiques</option>
-        <option>Histoire-Géo</option>
-        <option>Autre</option>
+      <select class="form-input" id="inp-matiere" onchange="onMatiereChange()">
+        <option>Sciences</option><option>Anglais</option><option>Français</option>
+        <option>Mathématiques</option><option>Histoire-Géo</option><option>Autre</option>
       </select>
-       <div class="form-group" id="matiereCustomWrap" style="display:none;">
-  <label class="form-label">Nouvelle matière</label>
-  <input class="form-input" id="inp-matiere-custom" placeholder="Ex: EPS, Arts plastiques...">
-</div>
+    </div>
+    <div class="form-group hidden" id="matiereCustomWrap">
+      <label class="form-label">Nouvelle matière</label>
+      <input class="form-input" id="inp-matiere-custom" placeholder="Ex: EPS, Arts plastiques...">
     </div>
     <div class="form-group">
       <label class="form-label">Compétence évaluée</label>
-      <input class="form-input" id="inp-comp" name="competence" type="text" placeholder="Ex: États de l'eau" autocomplete="off" autocapitalize="sentences" spellcheck="true"/>    
+      <input class="form-input" id="inp-comp" type="text" placeholder="Ex: États de l'eau" autocomplete="off" autocapitalize="sentences">
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Période</label>
-        <select class="form-input" id="inp-periode">
-          <option>P1</option><option>P2</option><option selected>P3</option><option>P4</option><option>P5</option>
-        </select>
+      <div class="form-group"><label class="form-label">Période</label>
+        <select class="form-input" id="inp-periode"><option>P1</option><option>P2</option><option selected>P3</option><option>P4</option><option>P5</option></select>
       </div>
-      <div class="form-group">
-        <label class="form-label">Date (optionnel)</label>
-        <input class="form-input" id="inp-date" type="date">
-      </div>
+      <div class="form-group"><label class="form-label">Date (optionnel)</label><input class="form-input" id="inp-date" type="date"></div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modalComp')">Annuler</button>
@@ -849,26 +401,21 @@ border-bottom: 1px solid var(–border);
 </div>
 
 <!-- MENU AJOUT -->
-
 <div class="modal-overlay" id="modalMenu">
-  <div class="modal-sheet" onclick="event.stopPropagation()" style="padding-bottom:max(28px,env(safe-area-inset-bottom))">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="sheet-handle"></div>
-    <button onclick="closeModal('modalMenu');openModal('modalEleve')" style="width:100%;padding:16px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;color:var(--dark);cursor:pointer;margin-bottom:10px;text-align:left">
-      👤 Ajouter un élève
+    <button class="menu-btn" onclick="closeModal('modalMenu');openModal('modalEleve')" style="margin-bottom:10px">
+      <div class="menu-btn-icon" style="background:#eff6ff">👤</div>
+      <div><div>Ajouter un élève</div><div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Prénom, nom, niveau, genre</div></div>
     </button>
-    <button onclick="closeModal('modalMenu'); refreshMatiereSelect(); openModal('modalComp')" style="width:100%;padding:16px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;color:var(--dark);cursor:pointer;text-align:left">
-  📚 Ajouter une compétence
-</button>
+    <button class="menu-btn" onclick="closeModal('modalMenu');refreshMatiereSelect();openModal('modalComp')">
+      <div class="menu-btn-icon" style="background:#f0fdf4">📚</div>
+      <div><div>Ajouter une compétence</div><div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Matière, libellé, période</div></div>
+    </button>
   </div>
 </div>
 
-<!-- TOAST -->
-
 <div class="toast" id="toast"></div>
-
-<!-- ============================================================
-     CONFIG SUPABASE — À REMPLACER PAR VOS VRAIES VALEURS
-============================================================ -->
 
 <script>
 // ⚠️ REMPLACEZ CES VALEURS PAR CELLES DE VOTRE PROJET SUPABASE
@@ -877,608 +424,300 @@ const SUPABASE_KEY = 'sb_publishable_klKLwvVxWb8LcIOjGIl9tw_3Uj8C4f4';
 </script>
 
 <script>
-// ============================================================
-// INIT SUPABASE
-// ============================================================
 const { createClient } = supabase;
 let db;
-try {
-  db = createClient(SUPABASE_URL, SUPABASE_KEY);
-} catch(e) {
-  console.error('Supabase init error:', e);
-}
+try { db = createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.error(e); }
 
-// ============================================================
-// STATE
-// ============================================================
-let eleves = [];
-let competences = [];
-let notes = {}; // key: "eleveId_compId" → grade string
-let currentGradeTarget = null; // {eleveId, compId}
-let activeEleveFilter = 'all';
-let activePeriodeFilter = 'all';
-let currentUser = null;
+let eleves = [], competences = [], notes = {};
+let currentGradeTarget = null, activeEleveFilter = 'all', activePeriodeFilter = 'all';
+let currentUser = null, selectedGenre = '';
 
-// ============================================================
 // AUTH
-// ============================================================
 async function init() {
   try {
     const { data: { session } } = await db.auth.getSession();
-    if (session) {
-      currentUser = session.user;
-      await loadAll();
-      await showApp();
-    } else {
-      showLogin();
-    }
-  } catch(e) {
-    showLogin();
-  }
+    if (session) { currentUser = session.user; await loadAll(); showApp(); }
+    else showLogin();
+  } catch(e) { showLogin(); }
 }
-
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
-  const pwd   = document.getElementById('loginPassword').value;
+  const pwd = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('loginError');
-  errEl.classList.add('hidden');
-  errEl.textContent = '';
-
+  errEl.classList.add('hidden'); errEl.textContent = '';
   try {
     const { data, error } = await db.auth.signInWithPassword({ email, password: pwd });
     if (error) throw error;
     currentUser = data.user;
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('loadingScreen').classList.remove('hidden');
-    await loadAll();
-    await showApp();
-  } catch(e) {
-    errEl.textContent = 'Email ou mot de passe incorrect.';
-    errEl.classList.remove('hidden');
-  }
+    await loadAll(); showApp();
+  } catch(e) { errEl.textContent = 'Email ou mot de passe incorrect.'; errEl.classList.remove('hidden'); }
 }
-
-function showLogin() {
-  document.getElementById('loadingScreen').classList.add('hidden');
-  document.getElementById('loginScreen').classList.remove('hidden');
-}
-
-async function showApp() {
+function showLogin() { document.getElementById('loadingScreen').classList.add('hidden'); document.getElementById('loginScreen').classList.remove('hidden'); }
+function showApp() {
   document.getElementById('loadingScreen').classList.add('hidden');
   document.getElementById('loginScreen').classList.add('hidden');
-  document.getElementById('appHeader').style.display = '';
-  document.getElementById('appMain').style.display = '';
-  document.getElementById('appNav').style.display = '';
-  document.getElementById('fabBtn').style.display = '';
-  await quickRefresh();
+  ['appHeader','appMain','appNav','fabBtn'].forEach(id => document.getElementById(id).style.display = '');
+  renderAll();
 }
 
-// ============================================================
-// DATA LOADING
-// ============================================================
+// DATA
 async function loadAll() {
   const uid = currentUser.id;
-
   const [{ data: el }, { data: co }, { data: no }] = await Promise.all([
     db.from('eleves').select('*').eq('user_id', uid).order('nom'),
     db.from('competences').select('*').eq('user_id', uid).order('created_at'),
     db.from('notes').select('*').eq('user_id', uid),
   ]);
-
-  eleves = el || [];
-  competences = co || [];
-  notes = {};
+  eleves = el || []; competences = co || []; notes = {};
   (no || []).forEach(n => { notes[`${n.eleve_id}_${n.competence_id}`] = n.grade; });
 }
+async function quickRefresh() {
+  await loadAll(); renderAll();
+  if (document.getElementById('screen-detail')?.classList.contains('active') && window.currentDetailEleveId)
+    showDetail(window.currentDetailEleveId);
+}
 
-// ============================================================
 // RENDER
-// ============================================================
-function renderAll() {
-  renderStats();
-  renderEleves();
-  renderGrille();
-}
-   
-   function gradeColor(g) {
-  return {
-    'A+':'#2d6a4f','A':'#52b788','EA':'#f4a261','NA':'#e76f51','ABS':'#9ca3af'
-  }[g] || '#ccc';
-}
+function renderAll() { renderStats(); renderEleves(); renderGrille(); }
+function gradeColor(g) { return {'A+':'#059669','A':'#10b981','EA':'#f59e0b','NA':'#f43f5e','ABS':'#94a3b8'}[g]||'#ccc'; }
+function gc(sexe) { return sexe==='M'?'boy':sexe==='F'?'girl':'unknown'; }
+function ge(sexe) { return sexe==='M'?'👦':sexe==='F'?'👧':'🧑'; }
 
 function renderStats() {
-  const counts = {'A+':0,'A':0,'EA':0,'NA':0};
-  Object.values(notes).forEach(g => { if(counts[g] !== undefined) counts[g]++; });
-  document.getElementById('stat-aplus').textContent = counts['A+'];
-  document.getElementById('stat-a').textContent     = counts['A'];
-  document.getElementById('stat-ea').textContent    = counts['EA'];
-  document.getElementById('stat-na').textContent    = counts['NA'];
+  const c = {'A+':0,'A':0,'EA':0,'NA':0};
+  Object.values(notes).forEach(g => { if(c[g]!==undefined) c[g]++; });
+  ['aplus','a','ea','na'].forEach((k,i)=>{ document.getElementById('stat-'+k).textContent = c[['A+','A','EA','NA'][i]]; });
+}
+
+function sortedEleves(filter) {
+  return eleves.filter(e=>filter==='all'||e.niveau===filter)
+    .sort((a,b)=>{ if(a.niveau!==b.niveau) return a.niveau==='CE2'?-1:1; return a.nom.localeCompare(b.nom); });
 }
 
 function renderEleves() {
-  const filtered = eleves.filter(e =>
-    activeEleveFilter === 'all' || e.niveau === activeEleveFilter
-  );
+  const filtered = sortedEleves(activeEleveFilter);
   const list = document.getElementById('elevesList');
-  if (!filtered.length) {
-    list.innerHTML = '<p style="text-align:center;color:var(--muted);padding:32px 0;font-size:0.88rem">Aucun élève — ajoutez-en un avec le bouton ＋</p>';
-    return;
-  }
-  list.innerHTML = filtered.map(e => {
-    const myNotes = competences.map(c => notes[`${e.id}_${c.id}`]).filter(Boolean);
-    const scoreNum = myNotes.length ? Math.round(
-      myNotes.reduce((sum, g) => sum + ({'A+':4,'A':3,'EA':2,'NA':1,'ABS':0}[g]||0), 0)
-      / (myNotes.length * 4) * 100
-    ) : null;
-    const scoreColor = scoreNum === null ? 'var(--muted)'
-      : scoreNum >= 80 ? 'var(--aplus)'
-      : scoreNum >= 60 ? 'var(--a)'
-      : scoreNum >= 40 ? 'var(--ea)'
-      : 'var(--na)';
-    const counts = {};
-    myNotes.forEach(g => counts[g] = (counts[g]||0)+1);
-    const miniPills = Object.entries(counts)
-      .map(([g,n]) => `<span class="mini-pill" style="background:${gradeColor(g)}">${n}×${g}</span>`)
-      .join('');
-   return `<div class="eleve-card" onclick="showDetail(${e.id})">
-  <div class="eleve-info">
-    <div class="eleve-name">${e.prenom} ${e.nom}</div>
-    <div class="eleve-sub">
-      <span class="niveau-badge ${e.niveau.toLowerCase()}">${e.niveau}</span>
-      ${myNotes.length} éval.
-    </div>
-    ${miniPills ? `<div class="mini-grades">${miniPills}</div>` : ''}
-  </div>
+  if (!filtered.length) { list.innerHTML='<p style="text-align:center;color:var(--muted);padding:40px 0;font-size:0.85rem">Aucun élève — appuyez sur ＋ pour en ajouter un</p>'; return; }
+  let html = '', lastNiv = null;
+  filtered.forEach(e => {
+    if (activeEleveFilter==='all' && e.niveau!==lastNiv) {
+      lastNiv = e.niveau;
+      html += `<div class="niveau-sep"><div class="niveau-sep-line"></div><span class="niveau-sep-label ${e.niveau.toLowerCase()}">${e.niveau}</span><div class="niveau-sep-line"></div></div>`;
+    }
+    const myNotes = competences.map(c=>notes[`${e.id}_${c.id}`]).filter(Boolean);
+    const counts = {}; myNotes.forEach(g=>counts[g]=(counts[g]||0)+1);
+    const pills = Object.entries(counts).map(([g,n])=>`<span class="mini-pill" style="background:${gradeColor(g)}">${n}×${g}</span>`).join('');
+    html += `<div class="eleve-card ${gc(e.sexe)}" onclick="showDetail(${e.id})">
+      <div class="eleve-avatar ${gc(e.sexe)}">${ge(e.sexe)}</div>
+      <div class="eleve-info">
+        <div class="eleve-name">${e.prenom} <span style="font-weight:600">${e.nom}</span></div>
+        <div class="eleve-sub"><span class="niveau-badge ${e.niveau.toLowerCase()}">${e.niveau}</span>${myNotes.length} éval.</div>
+        ${pills?`<div class="mini-grades">${pills}</div>`:''}
+      </div>
+      <div class="eleve-actions"><button class="icon-btn danger" onclick="event.stopPropagation();deleteEleve(${e.id})">🗑️</button></div>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
 
-  <div style="display:flex;align-items:center;gap:12px">
-    <div class="eleve-score" style="color:${scoreColor}">${scoreNum !== null ? scoreNum+'%' : '—'}</div>
-
-    <button onclick="event.stopPropagation(); deleteEleve(${e.id});"
-            style="border:none;background:transparent;font-size:18px;cursor:pointer">🗑️</button>
-  </div>
-</div>`;
-  }).join('');
+function matiereClass(m) {
+  return {'Sciences':'mat-Sciences','Anglais':'mat-Anglais','Français':'mat-Francais','Mathématiques':'mat-Mathematiques','Histoire-Géo':'mat-HistoireGeo'}[m]||'mat-other';
 }
 
 function renderGrille() {
-  const filteredC = competences.filter(c =>
-    activePeriodeFilter === 'all' || c.periode === activePeriodeFilter
-  );
-  const matieres = [...new Set(filteredC.map(c => c.matiere))];
-
-  let head = '<tr>';
-  head += '<th class="th-name">Élève</th>';
-  matieres.forEach(m => {
-    const cols = filteredC.filter(c => c.matiere === m);
-    head += `<th colspan="${cols.length}" class="th-matiere">${m}</th>`;
+  const filteredC = competences.filter(c=>activePeriodeFilter==='all'||c.periode===activePeriodeFilter);
+  const matieres = [...new Set(filteredC.map(c=>c.matiere))];
+  // HEAD row 1
+  let head = `<tr><th class="th-name" rowspan="2">Élève</th>`;
+  matieres.forEach((m,mi)=>{
+    const cols = filteredC.filter(c=>c.matiere===m);
+    head += `<th colspan="${cols.length}" class="th-matiere ${matiereClass(m)}${mi>0?' th-mat-first':''}">${m}</th>`;
   });
-  head += '</tr><tr><th class="th-name"></th>';
-  matieres.forEach(m => {
-    filteredC.filter(c => c.matiere === m).forEach(c => {
-      const label = c.nom.length > 10 ? c.nom.substring(0,9)+'…' : c.nom;
-      head += `<th>${label}${c.date_eval ? `<span class="th-sub">${c.date_eval}</span>` : ''}</th>`;
+  head += '</tr><tr>';
+  matieres.forEach((m,mi)=>{
+    filteredC.filter(c=>c.matiere===m).forEach((c,ci)=>{
+      const label = c.nom.length>12?c.nom.substring(0,11)+'…':c.nom;
+      const isFirst = ci===0&&mi>0;
+      head += `<th class="th-comp${isFirst?' th-mat-first':''}" title="${c.nom}">${label}${c.date_eval?`<span class="th-date">${c.date_eval}</span>`:''}</th>`;
     });
   });
   head += '</tr>';
   document.getElementById('grilleHead').innerHTML = head;
-
-  let body = '';
-  eleves.forEach(e => {
-    const niv = e.niveau.toLowerCase();
-    body += `<tr>
-      <td class="td-name">
-        ${e.prenom}<br>
-        <span class="niveau-badge ${niv}" style="margin-top:2px">${e.niveau}</span>
-      </td>`;
-    filteredC.forEach(c => {
-      const key = `${e.id}_${c.id}`;
-      const g = notes[key];
-      const cls = g ? g.replace('+','PLUS') : 'EMPTY';
-      const label = g || '·';
-      body += `<td class="td-grade">
-        <div class="grade-pill ${cls}" onclick="openGradeSheet(${e.id},${c.id},'${e.prenom} ${e.nom}','${c.nom}')">${label}</div>
-      </td>`;
+  // BODY
+  const sorted = [...eleves].sort((a,b)=>{ if(a.niveau!==b.niveau) return a.niveau==='CE2'?-1:1; return a.nom.localeCompare(b.nom); });
+  let body = '', lastNiv = null;
+  sorted.forEach(e=>{
+    if (e.niveau!==lastNiv) {
+      lastNiv=e.niveau;
+      body+=`<tr class="tr-niveau-sep"><td colspan="${1+filteredC.length}">${e.niveau}</td></tr>`;
+    }
+    body+=`<tr><td class="td-name ${gc(e.sexe)}-row">${ge(e.sexe)} ${e.prenom}<br><span class="niveau-badge ${e.niveau.toLowerCase()}">${e.niveau}</span></td>`;
+    matieres.forEach((m,mi)=>{
+      filteredC.filter(c=>c.matiere===m).forEach((c,ci)=>{
+        const key=`${e.id}_${c.id}`, g=notes[key];
+        const cls=g?g.replace('+','PLUS'):'EMPTY';
+        const isFirst=ci===0&&mi>0;
+        body+=`<td class="td-grade${isFirst?' td-mat-first':''}"><div class="grade-pill ${cls}" onclick="openGradeSheet(${e.id},${c.id},'${e.prenom} ${e.nom}','${(c.nom||'').replace(/'/g,"\\'")}')">${g||'·'}</div></td>`;
+      });
     });
-    body += '</tr>';
+    body+='</tr>';
   });
   document.getElementById('grilleBody').innerHTML = body;
 }
 
 function showDetail(eleveId) {
-   window.currentDetailEleveId = eleveId;
-   const e = eleves.find(x => x.id === eleveId);
-  if (!e) return;
-  const matieres = [...new Set(competences.map(c => c.matiere))];
-  let html = `
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px">
-    <div style="font-size:1.2rem;font-weight:800">${e.prenom} ${e.nom}</div>
-    <button onclick="deleteEleve(${e.id})"
-            style="border:none;background:transparent;font-size:20px;cursor:pointer">🗑️</button>
-  </div>
-  <div style="margin-bottom:20px">
-    <span class="niveau-badge ${e.niveau.toLowerCase()}">${e.niveau}</span>
+  window.currentDetailEleveId = eleveId;
+  const e = eleves.find(x=>x.id===eleveId); if(!e) return;
+  const matieres = [...new Set(competences.map(c=>c.matiere))];
+  let html = `<div class="detail-header">
+    <div class="detail-avatar ${gc(e.sexe)}">${ge(e.sexe)}</div>
+    <div><div class="detail-name">${e.prenom} ${e.nom}</div>
+    <div class="detail-meta"><span class="niveau-badge ${e.niveau.toLowerCase()}">${e.niveau}</span>
+    <span style="font-size:0.72rem;color:var(--muted)">${e.sexe==='M'?'Garçon':e.sexe==='F'?'Fille':''}</span></div></div>
+    <button onclick="deleteEleve(${e.id})" class="icon-btn danger" style="margin-left:auto">🗑️</button>
   </div>`;
-  matieres.forEach(m => {
-    const comps = competences.filter(c => c.matiere === m);
-   const safeM = m.replace(/'/g, "\\'");
-html += `<div class="detail-card">
-  <div class="detail-matiere" style="display:flex;justify-content:space-between;align-items:center">
-    <span>${m}</span>
-    <button onclick="deleteMatiere('${safeM}')"
-            style="border:none;background:transparent;font-size:18px;cursor:pointer">🗑️</button>
-  </div>`;
-comps.forEach(c => {
-  const g = notes[`${e.id}_${c.id}`];
-
-  html += `<div class="detail-row">
-    <div class="detail-comp">${c.nom}${c.date_eval ? ` <span style="font-size:0.65rem;color:var(--muted)">${c.date_eval}</span>` : ''}</div>
-
-    <div style="display:flex;align-items:center;gap:10px">
-      <div class="grade-pill ${g ? g.replace('+','PLUS') : 'EMPTY'}"
-           onclick="openGradeSheet(${e.id},${c.id},'${e.prenom}','${(c.nom || '').replace(/'/g,"\\'")}')">${g || '·'}</div>
-
-      <button onclick="deleteCompetence(${c.id})"
-              style="border:none;background:transparent;font-size:18px;cursor:pointer">🗑️</button>
-    </div>
-  </div>`;
-});
-    html += '</div>';
+  matieres.forEach(m=>{
+    const comps=competences.filter(c=>c.matiere===m), safeM=m.replace(/'/g,"\\'");
+    html+=`<div class="detail-card"><div class="detail-matiere-header"><div class="detail-matiere-label">${m}</div><button onclick="deleteMatiere('${safeM}')" class="icon-btn danger" style="width:28px;height:28px;font-size:0.75rem">🗑️</button></div>`;
+    comps.forEach(c=>{
+      const g=notes[`${e.id}_${c.id}`];
+      html+=`<div class="detail-row"><div class="detail-comp">${c.nom}${c.date_eval?`<span class="detail-comp-date">📅 ${c.date_eval}</span>`:''}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="grade-pill ${g?g.replace('+','PLUS'):'EMPTY'}" onclick="openGradeSheet(${e.id},${c.id},'${e.prenom}','${(c.nom||'').replace(/'/g,"\\'")}')">${g||'·'}</div>
+        <button onclick="deleteCompetence(${c.id})" class="icon-btn danger" style="width:28px;height:28px;font-size:0.75rem">🗑️</button>
+      </div></div>`;
+    });
+    html+='</div>';
   });
   document.getElementById('detailContent').innerHTML = html;
   showScreen('detail');
 }
-   async function quickRefresh() {
-  await loadAll();
-  renderAll();
 
-  if (
-    document.getElementById('screen-detail')?.classList.contains('active')
-    && window.currentDetailEleveId
-  ) {
-    showDetail(window.currentDetailEleveId);
-  }
-}
-// ============================================================
-// NAVIGATION
-// ============================================================
-function switchNav(el, screen) {
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  el.classList.add('active');
-  showScreen(screen);
-  // Update FAB label based on screen
-}
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(`screen-${name}`).classList.add('active');
-}
+// NAV
+function switchNav(el, screen) { document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); el.classList.add('active'); showScreen(screen); }
+function showScreen(name) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(`screen-${name}`).classList.add('active'); }
+function filterEleves(el, val) { el.closest('.filter-bar').querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); activeEleveFilter=val; renderEleves(); }
+function filterPeriode(el, val) { el.closest('.filter-bar').querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); activePeriodeFilter=val; renderGrille(); }
 
-// ============================================================
-// FILTERS
-// ============================================================
-function filterEleves(el, val) {
-  document.querySelectorAll('.filter-bar .filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  activeEleveFilter = val;
-  renderEleves();
-}
-function filterPeriode(el, val) {
-  el.closest('.filter-bar').querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  activePeriodeFilter = val;
-  renderGrille();
-}
-
-// ============================================================
 // GRADE SHEET
-// ============================================================
-function openGradeSheet(eleveId, compId, eleveName, compName) {
-  currentGradeTarget = { eleveId, compId };
-  document.getElementById('sheetTitle').textContent = `${eleveName} — ${compName}`;
-  document.getElementById('gradeOverlay').classList.add('open');
-}
-function closeGradeSheet() {
-  document.getElementById('gradeOverlay').classList.remove('open');
-  currentGradeTarget = null;
-}
-async function selectGrade(grade) {
-  if (!currentGradeTarget) return;
-  const { eleveId, compId } = currentGradeTarget;
-  closeGradeSheet();
-  await saveNote(eleveId, compId, grade);
-}
+function openGradeSheet(eleveId, compId, eleveName, compName) { currentGradeTarget={eleveId,compId}; document.getElementById('sheetTitle').textContent=`${eleveName} — ${compName}`; document.getElementById('gradeOverlay').classList.add('open'); }
+function closeGradeSheet() { document.getElementById('gradeOverlay').classList.remove('open'); currentGradeTarget=null; }
+async function selectGrade(grade) { if(!currentGradeTarget) return; const {eleveId,compId}=currentGradeTarget; closeGradeSheet(); await saveNote(eleveId,compId,grade); }
 async function saveNote(eleveId, compId, grade) {
-  const key = `${eleveId}_${compId}`;
+  const key=`${eleveId}_${compId}`;
   try {
-    if (grade === null) {
-      await db.from('notes').delete().eq('eleve_id', eleveId).eq('competence_id', compId).eq('user_id', currentUser.id);
-      delete notes[key];
-      showToast('Note effacée');
+    if (grade===null) {
+      await db.from('notes').delete().eq('eleve_id',eleveId).eq('competence_id',compId).eq('user_id',currentUser.id);
+      delete notes[key]; showToast('Note effacée');
     } else {
-      const { error } = await db.from('notes').upsert({
-        eleve_id: eleveId,
-        competence_id: compId,
-        grade,
-        user_id: currentUser.id
-      }, { onConflict: 'eleve_id,competence_id,user_id' });
-      if (error) throw error;
-      notes[key] = grade;
-      showToast(`Note "${grade}" enregistrée ✓`);
+      const {error}=await db.from('notes').upsert({eleve_id:eleveId,competence_id:compId,grade,user_id:currentUser.id},{onConflict:'eleve_id,competence_id,user_id'});
+      if(error) throw error; notes[key]=grade; showToast(`Note "${grade}" enregistrée ✓`);
     }
     await quickRefresh();
-  } catch(e) {
-    showToast('Erreur lors de la sauvegarde ⚠️');
-    console.error(e);
-  }
+  } catch(e) { showToast('Erreur sauvegarde ⚠️'); console.error(e); }
 }
 
-// ============================================================
-// ADD MENU
-// ============================================================
+// GENRE
+function selectGenre(val) {
+  selectedGenre=val;
+  document.getElementById('genre-boy').className='genre-btn'+(val==='M'?' selected-boy':'');
+  document.getElementById('genre-girl').className='genre-btn'+(val==='F'?' selected-girl':'');
+  document.getElementById('genre-unknown').className='genre-btn'+(val===''?' selected-unknown':'');
+}
+
+// ADD
 function openAddMenu() { openModal('modalMenu'); }
-
-// ============================================================
-// ÉLÈVE
-// ============================================================
 async function saveEleve() {
-  const prenom = document.getElementById('inp-prenom').value.trim();
-  const nom    = document.getElementById('inp-nom').value.trim().toUpperCase();
-  const niveau = document.getElementById('inp-niveau').value;
-  if (!prenom || !nom) { showToast('Remplis prénom et nom'); return; }
+  const prenom=document.getElementById('inp-prenom').value.trim();
+  const nom=document.getElementById('inp-nom').value.trim().toUpperCase();
+  const niveau=document.getElementById('inp-niveau').value, sexe=selectedGenre;
+  if(!prenom||!nom){showToast('Remplis prénom et nom');return;}
   try {
-    const { data, error } = await db.from('eleves').insert({ prenom, nom, niveau, user_id: currentUser.id }).select().single();
-    if (error) throw error;
-    eleves.push(data);
-    eleves.sort((a,b) => a.nom.localeCompare(b.nom));
-    closeModal('modalEleve');
-    document.getElementById('inp-prenom').value = '';
-    document.getElementById('inp-nom').value = '';
-    await quickRefresh();
-    showToast(`${prenom} ${nom} ajouté(e) ✓`);
-  } catch(e) {
-    showToast('Erreur lors de l\'ajout ⚠️');
-    console.error(e);
-  }
+    const {data,error}=await db.from('eleves').insert({prenom,nom,niveau,sexe,user_id:currentUser.id}).select().single();
+    if(error) throw error;
+    eleves.push(data); closeModal('modalEleve');
+    document.getElementById('inp-prenom').value=''; document.getElementById('inp-nom').value=''; selectGenre('');
+    await quickRefresh(); showToast(`${prenom} ${nom} ajouté(e) ✓`);
+  } catch(e){showToast("Erreur lors de l'ajout ⚠️");console.error(e);}
 }
-
-// ============================================================
-// COMPÉTENCE
-// ============================================================
-
 async function saveComp() {
-  let matiere = document.getElementById('inp-matiere').value;
-  const custom = document.getElementById('inp-matiere-custom')?.value.trim() || '';
-
-  if (matiere === 'Autre') {
-    if (!custom) { showToast('Saisis une matière'); return; }
-    matiere = custom;
-  }
-
-  const nom       = document.getElementById('inp-comp').value.trim();
-  const periode   = document.getElementById('inp-periode').value;
-  const date_eval = document.getElementById('inp-date').value || null;
-
-  if (!nom) { showToast('Saisis le nom de la compétence'); return; }
-
+  let matiere=document.getElementById('inp-matiere').value;
+  const custom=(document.getElementById('inp-matiere-custom')?.value||'').trim();
+  if(matiere==='Autre'){if(!custom){showToast('Saisis une matière');return;} matiere=custom;}
+  const nom=document.getElementById('inp-comp').value.trim();
+  const periode=document.getElementById('inp-periode').value;
+  const date_eval=document.getElementById('inp-date').value||null;
+  if(!nom){showToast('Saisis le nom de la compétence');return;}
   try {
-    const { data, error } = await db
-      .from('competences')
-      .insert({ matiere, nom, periode, date_eval, user_id: currentUser.id })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    competences.push(data);
-
-    closeModal('modalComp');
-    document.getElementById('inp-comp').value = '';
-    document.getElementById('inp-date').value = '';
-    document.getElementById('inp-matiere-custom').value = '';
-    document.getElementById('matiereCustomWrap').style.display = 'none';
-
-    await quickRefresh();
-    showToast(`"${nom}" ajoutée ✓`);
-  } catch(e) {
-    showToast("Erreur lors de l'ajout ⚠️");
-    console.error(e);
-  }
+    const {data,error}=await db.from('competences').insert({matiere,nom,periode,date_eval,user_id:currentUser.id}).select().single();
+    if(error) throw error;
+    competences.push(data); closeModal('modalComp');
+    document.getElementById('inp-comp').value=''; document.getElementById('inp-date').value='';
+    if(document.getElementById('inp-matiere-custom')) document.getElementById('inp-matiere-custom').value='';
+    document.getElementById('matiereCustomWrap').classList.add('hidden');
+    await quickRefresh(); showToast(`"${nom}" ajoutée ✓`);
+  } catch(e){showToast("Erreur lors de l'ajout ⚠️");console.error(e);}
 }
 
-// ============================================================
 // MODALS
-// ============================================================
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-// ============================================================
-// TOAST
-// ============================================================
-let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
-}
-// ============================================================
-// REFRESH AUTOMATIQUE SIMPLE
-// ============================================================
-async function quickRefresh() {
-  await loadAll();
-  renderAll();
-
-  // si on est sur la fiche élève → on la recharge aussi
-  if (
-    document.getElementById('screen-detail')?.classList.contains('active')
-    && window.currentDetailEleveId
-  ) {
-    showDetail(window.currentDetailEleveId);
-  }
-}
-// ============================================================
-// MATIÈRES (liste dynamique + "Autre" -> champ custom)
-// ============================================================
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
 function refreshMatiereSelect() {
-  const sel = document.getElementById('inp-matiere');
-  const wrap = document.getElementById('matiereCustomWrap');
-  const inpCustom = document.getElementById('inp-matiere-custom');
-
-  const defaults = ['Sciences','Anglais','Français','Mathématiques','Histoire-Géo'];
-  const customs = [...new Set((competences || []).map(c => c.matiere))]
-    .filter(m => m && !defaults.includes(m))
-    .sort((a,b)=>a.localeCompare(b));
-
-  sel.innerHTML =
-    defaults.map(m => `<option>${m}</option>`).join('') +
-    (customs.length ? `<option disabled>— Mes matières —</option>` : '') +
-    customs.map(m => `<option>${m}</option>`).join('') +
-    `<option>Autre</option>`;
-
-  // reset custom UI
-  wrap.style.display = 'none';
-  inpCustom.value = '';
+  const sel=document.getElementById('inp-matiere');
+  const defaults=['Sciences','Anglais','Français','Mathématiques','Histoire-Géo'];
+  const customs=[...new Set((competences||[]).map(c=>c.matiere))].filter(m=>m&&!defaults.includes(m)).sort((a,b)=>a.localeCompare(b));
+  sel.innerHTML=defaults.map(m=>`<option>${m}</option>`).join('')+(customs.length?`<option disabled>— Mes matières —</option>`:'')+customs.map(m=>`<option>${m}</option>`).join('')+`<option>Autre</option>`;
+  document.getElementById('matiereCustomWrap').classList.add('hidden');
 }
-
-// Appelé quand l'utilisateur choisit une matière
 function onMatiereChange() {
-  const sel = document.getElementById('inp-matiere');
-  const wrap = document.getElementById('matiereCustomWrap');
-  const inpCustom = document.getElementById('inp-matiere-custom');
-
-  const isOther = sel.value === 'Autre';
-  wrap.style.display = isOther ? '' : 'none';
-  if (!isOther) inpCustom.value = '';
+  const isOther=document.getElementById('inp-matiere').value==='Autre';
+  document.getElementById('matiereCustomWrap').classList.toggle('hidden',!isOther);
+  if(!isOther) document.getElementById('inp-matiere-custom').value='';
 }
 
-// ============================================================
-// SUPPRESSIONS
-// ============================================================
+// DELETE
 async function deleteCompetence(compId) {
-  if (!confirm("Supprimer cette compétence ? Les notes associées seront supprimées.")) return;
-
+  if(!confirm("Supprimer cette compétence et ses notes ?")) return;
   try {
-    // 1) supprimer notes liées
-    const { error: e1 } = await db
-      .from('notes')
-      .delete()
-      .eq('competence_id', compId)
-      .eq('user_id', currentUser.id);
-    if (e1) throw e1;
-
-    // 2) supprimer compétence
-    const { error: e2 } = await db
-      .from('competences')
-      .delete()
-      .eq('id', compId)
-      .eq('user_id', currentUser.id);
-    if (e2) throw e2;
-
-    // 3) mettre à jour l'état local
-    competences = competences.filter(c => c.id !== compId);
-
-    // 4) nettoyer cache notes local
-    Object.keys(notes).forEach(k => {
-      const [, cId] = k.split('_');
-      if (Number(cId) === compId) delete notes[k];
-    });
-
-    await quickRefresh();
-    showToast("Compétence supprimée ✓");
-  } catch (e) {
-    console.error(e);
-    showToast("Erreur suppression ⚠️");
-  }
+    await db.from('notes').delete().eq('competence_id',compId).eq('user_id',currentUser.id);
+    await db.from('competences').delete().eq('id',compId).eq('user_id',currentUser.id);
+    competences=competences.filter(c=>c.id!==compId);
+    Object.keys(notes).forEach(k=>{if(Number(k.split('_')[1])===compId) delete notes[k];});
+    await quickRefresh(); showToast("Compétence supprimée ✓");
+  } catch(e){showToast("Erreur suppression ⚠️");}
 }
-
 async function deleteMatiere(matiere) {
-  if (!confirm(`Supprimer la matière "${matiere}" ? Toutes les compétences + notes liées seront supprimées.`)) return;
-
+  if(!confirm(`Supprimer la matière "${matiere}" et tout son contenu ?`)) return;
   try {
-    const compIds = competences
-      .filter(c => c.matiere === matiere)
-      .map(c => c.id);
-
-    if (compIds.length) {
-      const { error: e1 } = await db
-        .from('notes')
-        .delete()
-        .in('competence_id', compIds)
-        .eq('user_id', currentUser.id);
-      if (e1) throw e1;
-
-      const { error: e2 } = await db
-        .from('competences')
-        .delete()
-        .in('id', compIds)
-        .eq('user_id', currentUser.id);
-      if (e2) throw e2;
+    const ids=competences.filter(c=>c.matiere===matiere).map(c=>c.id);
+    if(ids.length){
+      await db.from('notes').delete().in('competence_id',ids).eq('user_id',currentUser.id);
+      await db.from('competences').delete().in('id',ids).eq('user_id',currentUser.id);
     }
-
-    // état local
-    competences = competences.filter(c => c.matiere !== matiere);
-
-    // nettoyer notes locales
-    const compIdSet = new Set(compIds);
-    Object.keys(notes).forEach(k => {
-      const [, cId] = k.split('_');
-      if (compIdSet.has(Number(cId))) delete notes[k];
-    });
-
-    await quickRefresh();
-    showToast("Matière supprimée ✓");
-  } catch (e) {
-    console.error(e);
-    showToast("Erreur suppression ⚠️");
-  }
+    competences=competences.filter(c=>c.matiere!==matiere);
+    const s=new Set(ids); Object.keys(notes).forEach(k=>{if(s.has(Number(k.split('_')[1]))) delete notes[k];});
+    await quickRefresh(); showToast("Matière supprimée ✓");
+  } catch(e){showToast("Erreur suppression ⚠️");}
 }
-   async function deleteEleve(eleveId) {
-  const e = eleves.find(x => x.id === eleveId);
-  const label = e ? `${e.prenom} ${e.nom}` : `#${eleveId}`;
-
-  if (!confirm(`Supprimer l'élève ${label} ?\nToutes ses notes seront supprimées.`)) return;
-
+async function deleteEleve(eleveId) {
+  const e=eleves.find(x=>x.id===eleveId);
+  if(!confirm(`Supprimer ${e?e.prenom+' '+e.nom:'cet élève'} et toutes ses notes ?`)) return;
   try {
-    // 1) supprimer notes liées
-    const { error: e1 } = await db
-      .from('notes')
-      .delete()
-      .eq('eleve_id', eleveId)
-      .eq('user_id', currentUser.id);
-    if (e1) throw e1;
-
-    // 2) supprimer élève
-    const { error: e2 } = await db
-      .from('eleves')
-      .delete()
-      .eq('id', eleveId)
-      .eq('user_id', currentUser.id);
-    if (e2) throw e2;
-
-    // 3) mettre à jour l'état local
-    eleves = eleves.filter(x => x.id !== eleveId);
-
-    // 4) nettoyer notes locales
-    Object.keys(notes).forEach(k => {
-      const [eId] = k.split('_');
-      if (Number(eId) === eleveId) delete notes[k];
-    });
-
-    await quickRefresh();
-    showScreen('accueil');
-    showToast("Élève supprimé ✓");
-  } catch (err) {
-    console.error(err);
-    showToast("Erreur suppression ⚠️");
-  }
+    await db.from('notes').delete().eq('eleve_id',eleveId).eq('user_id',currentUser.id);
+    await db.from('eleves').delete().eq('id',eleveId).eq('user_id',currentUser.id);
+    eleves=eleves.filter(x=>x.id!==eleveId);
+    Object.keys(notes).forEach(k=>{if(Number(k.split('_')[0])===eleveId) delete notes[k];});
+    await quickRefresh(); showScreen('accueil'); showToast("Élève supprimé ✓");
+  } catch(e){showToast("Erreur suppression ⚠️");}
 }
-// ============================================================
-// START
-// ============================================================
-   // Gestion du select matière -> affiche le champ "nouvelle matière"
-document.getElementById('inp-matiere').addEventListener('change', onMatiereChange);
-   init();
-</script>
 
+// TOAST
+let toastTimer;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);}
+
+init();
+</script>
 </body>
 </html>
