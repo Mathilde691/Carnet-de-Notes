@@ -714,10 +714,11 @@ async function saveNote(eleveId, compId, grade) {
 
 // GENRE
 function selectGenre(val) {
+  // Si val vide (ancien enregistrement sans genre), on force M par défaut
+  if(val === '' || val === null || val === undefined) val = 'M';
   selectedGenre=val;
   document.getElementById('genre-boy').className='genre-btn'+(val==='M'?' selected-boy':'');
   document.getElementById('genre-girl').className='genre-btn'+(val==='F'?' selected-girl':'');
-  document.getElementById('genre-unknown').className='genre-btn'+(val===''?' selected-unknown':'');
 }
 
 // ADD
