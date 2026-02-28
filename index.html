@@ -209,8 +209,6 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
 .menu-btn-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
 
 /* FAB */
-.fab { position: fixed; bottom: calc(66px + max(6px, env(safe-area-inset-bottom))); right: 14px; width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, var(--accent), #e11d48); color: white; border: none; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(244,63,94,0.45); cursor: pointer; z-index: 50; transition: transform 0.15s; }
-.fab:active { transform: scale(0.9); }
 
 /* TOAST */
 .toast { position: fixed; bottom: calc(76px + max(6px, env(safe-area-inset-bottom))); left: 14px; right: 14px; background: var(--dark2); color: white; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; z-index: 300; transform: translateY(20px); opacity: 0; transition: all 0.25s; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
@@ -331,8 +329,6 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
   <button class="nav-item" onclick="switchNav(this,'grille')"><span class="nav-icon">📊</span><span class="nav-label">Grille</span></button>
 </div>
 
-<!-- FAB -->
-<button class="fab" id="fabBtn" style="display:none" onclick="openAddMenu()">＋</button>
 
 <!-- GRADE SHEET -->
 <div class="overlay" id="gradeOverlay" onclick="closeGradeSheet()">
@@ -538,7 +534,7 @@ function showLogin() { document.getElementById('loadingScreen').classList.add('h
 function showApp() {
   document.getElementById('loadingScreen').classList.add('hidden');
   document.getElementById('loginScreen').classList.add('hidden');
-  ['appHeader','appMain','appNav','fabBtn'].forEach(id => document.getElementById(id).style.display = '');
+  ['appHeader','appMain','appNav',].forEach(id => document.getElementById(id).style.display = '');
   renderAll();
 }
 
@@ -556,14 +552,16 @@ async function loadAll() {
 async function quickRefresh() {
   try {
     await loadAll();
+    renderAll();
+    refreshMatiereSelect();
+    if (typeof editGrilleOpen !== 'undefined' && editGrilleOpen) renderEditGrille();
+    if (document.getElementById('screen-detail')?.classList.contains('active') && window.currentDetailEleveId)
+      showDetail(window.currentDetailEleveId);
   } catch(e) {
-    console.error('loadAll error:', e);
+    console.error('quickRefresh error:', e);
+    // Tenter un re-render même en cas d'erreur
+    try { renderAll(); } catch(e2) {}
   }
-  renderAll();
-  refreshMatiereSelect();
-  if (editGrilleOpen) renderEditGrille();
-  if (document.getElementById('screen-detail')?.classList.contains('active') && window.currentDetailEleveId)
-    showDetail(window.currentDetailEleveId);
 }
 
 // RENDER
@@ -726,18 +724,30 @@ function openAddMenu() { openModal('modalMenu'); }
 async function saveEleve() {
   const prenom=document.getElementById('inp-prenom').value.trim();
   const nom=document.getElementById('inp-nom').value.trim().toUpperCase();
-  const niveau=document.getElementById('inp-niveau').value, sexe=selectedGenre;
+  const niveau=document.getElementById('inp-niveau').value;
+  const sexe=selectedGenre||'M';
   if(!prenom||!nom){showToast('Remplis prénom et nom');return;}
+
+  const btn=document.querySelector('#modalEleve .btn-save');
+  if(btn){btn.disabled=true;btn.textContent='Enregistrement...';}
+
   try {
     const {error}=await db.from('eleves').insert({prenom,nom,niveau,sexe,user_id:currentUser.id});
     if(error) throw error;
+    // Fermer et réinitialiser
     closeModal('modalEleve');
     document.getElementById('inp-prenom').value='';
     document.getElementById('inp-nom').value='';
     selectGenre('M');
-    await quickRefresh();
     showToast(`${prenom} ${nom} ajouté(e) ✓`);
-  } catch(e){showToast("Erreur lors de l'ajout ⚠️ — "+e.message);console.error(e);}
+    // Rafraîchir en arrière-plan
+    await quickRefresh();
+  } catch(e){
+    showToast("Erreur : "+e.message);
+    console.error(e);
+  } finally {
+    if(btn){btn.disabled=false;btn.textContent='Enregistrer';}
+  }
 }
 async function saveComp() {
   let matiere=document.getElementById('inp-matiere').value;
@@ -747,23 +757,35 @@ async function saveComp() {
   const date_eval=document.getElementById('inp-date').value||null;
   if(!nom){showToast('Saisis le nom de la compétence');return;}
   if(compPeriodes.size===0){showToast('Sélectionne au moins une période');return;}
+
+  const btn=document.querySelector('#modalComp .btn-save');
+  if(btn){btn.disabled=true;btn.textContent='Enregistrement...';}
+
   try {
-    // Éviter les doublons
     const existantes=new Set(competences.filter(c=>c.matiere===matiere&&c.nom===nom).map(c=>c.periode));
     const aInserer=[...compPeriodes].filter(p=>!existantes.has(p));
     if(aInserer.length===0){showToast('Cette compétence existe déjà dans les périodes sélectionnées');return;}
     const rows=aInserer.map(p=>({matiere,nom,periode:p,date_eval,user_id:currentUser.id}));
     const {error}=await db.from('competences').insert(rows);
     if(error) throw error;
+    // Fermer et réinitialiser
     closeModal('modalComp');
-    document.getElementById('inp-comp').value=''; document.getElementById('inp-date').value='';
+    document.getElementById('inp-comp').value='';
+    document.getElementById('inp-date').value='';
     if(document.getElementById('inp-matiere-custom')) document.getElementById('inp-matiere-custom').value='';
     document.getElementById('matiereCustomWrap').classList.add('hidden');
-    await quickRefresh();
     const label=aInserer.length===1?aInserer[0]:aInserer.join(', ');
     showToast(`"${nom}" ajoutée sur ${label} ✓`);
-  } catch(e){showToast("Erreur lors de l'ajout ⚠️");console.error(e);}
+    // Rafraîchir en arrière-plan
+    await quickRefresh();
+  } catch(e){
+    showToast("Erreur : "+e.message);
+    console.error(e);
+  } finally {
+    if(btn){btn.disabled=false;btn.textContent='Enregistrer';}
+  }
 }
+
 
 // MODALS
 
