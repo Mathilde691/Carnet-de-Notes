@@ -670,7 +670,7 @@ function showDetail(eleveId) {
     <button onclick="deleteEleve(${e.id})" class="icon-btn danger" style="margin-left:auto">🗑️</button>
   </div>`;
   matieres.forEach(m=>{
-    const comps=competences.filter(c=>c.matiere===m), safeM=m.replace(/'/g,"\\'");
+    const comps=competences.filter(c=>c.matiere===m).sort((a,b)=>a.periode.localeCompare(b.periode)), safeM=m.replace(/'/g,"\\'");
     html+=`<div class="detail-card"><div class="detail-matiere-header"><div class="detail-matiere-label">${m}</div><button onclick="deleteMatiere('${safeM}')" class="icon-btn danger" style="width:28px;height:28px;font-size:0.75rem">🗑️</button></div>`;
     comps.forEach(c=>{
       const g=notes[`${e.id}_${c.id}`];
