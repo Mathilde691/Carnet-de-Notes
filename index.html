@@ -235,6 +235,7 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
 .login-btn { width: 100%; max-width: 320px; padding: 15px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--green), var(--indigo)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; font-weight: 800; cursor: pointer; margin-top: 4px; }
 .login-error { color: #fda4af; font-size: 0.8rem; font-weight: 700; }
 
+.icon-btn.edit { background: #f0fdf4; color: var(--green); }
 .hidden { display: none !important; }
 </style>
 </head>
@@ -396,6 +397,33 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modalComp')">Annuler</button>
       <button class="btn-save" onclick="saveComp()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MODIFIER ÉLÈVE -->
+<div class="modal-overlay" id="modalEditEleve">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-title">✏️ Modifier l'élève</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Prénom</label><input class="form-input" id="edit-prenom" placeholder="Marie"></div>
+      <div class="form-group"><label class="form-label">Nom</label><input class="form-input" id="edit-nom" placeholder="DUPONT"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Niveau</label>
+      <select class="form-input" id="edit-niveau"><option value="CE2">CE2</option><option value="CM1">CM1</option></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Genre</label>
+      <div class="genre-toggle">
+        <button type="button" class="genre-btn" id="edit-genre-boy" onclick="selectEditGenre('M')">👦 Garçon</button>
+        <button type="button" class="genre-btn" id="edit-genre-girl" onclick="selectEditGenre('F')">👧 Fille</button>
+        <button type="button" class="genre-btn" id="edit-genre-unknown" onclick="selectEditGenre('')">❓ N/A</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalEditEleve')">Annuler</button>
+      <button class="btn-save" onclick="updateEleve()">Enregistrer les modifications</button>
     </div>
   </div>
 </div>
@@ -716,6 +744,48 @@ async function deleteEleve(eleveId) {
 // TOAST
 let toastTimer;
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);}
+
+
+// EDIT ELEVE
+let editingEleveId = null;
+let selectedEditGenre = '';
+
+function openEditEleve(eleveId) {
+  const e = eleves.find(x => x.id === eleveId);
+  if (!e) return;
+  editingEleveId = eleveId;
+  document.getElementById('edit-prenom').value = e.prenom;
+  document.getElementById('edit-nom').value = e.nom;
+  document.getElementById('edit-niveau').value = e.niveau;
+  selectEditGenre(e.sexe || '');
+  openModal('modalEditEleve');
+}
+
+function selectEditGenre(val) {
+  selectedEditGenre = val;
+  document.getElementById('edit-genre-boy').className = 'genre-btn' + (val === 'M' ? ' selected-boy' : '');
+  document.getElementById('edit-genre-girl').className = 'genre-btn' + (val === 'F' ? ' selected-girl' : '');
+  document.getElementById('edit-genre-unknown').className = 'genre-btn' + (val === '' ? ' selected-unknown' : '');
+}
+
+async function updateEleve() {
+  if (!editingEleveId) return;
+  const prenom = document.getElementById('edit-prenom').value.trim();
+  const nom = document.getElementById('edit-nom').value.trim().toUpperCase();
+  const niveau = document.getElementById('edit-niveau').value;
+  const sexe = selectedEditGenre;
+  if (!prenom || !nom) { showToast('Remplis prénom et nom'); return; }
+  try {
+    const { error } = await db.from('eleves')
+      .update({ prenom, nom, niveau, sexe })
+      .eq('id', editingEleveId)
+      .eq('user_id', currentUser.id);
+    if (error) throw error;
+    closeModal('modalEditEleve');
+    await quickRefresh();
+    showToast('Élève mis à jour ✓');
+  } catch(e) { showToast('Erreur lors de la modification ⚠️'); console.error(e); }
+}
 
 init();
 </script>
