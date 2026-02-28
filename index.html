@@ -557,6 +557,7 @@ async function quickRefresh() {
   await loadAll();
   renderAll();
   refreshMatiereSelect();
+  if (editGrilleOpen) renderEditGrille();
   if (document.getElementById('screen-detail')?.classList.contains('active') && window.currentDetailEleveId)
     showDetail(window.currentDetailEleveId);
 }
@@ -789,7 +790,8 @@ async function deleteCompetence(compId) {
     await db.from('competences').delete().eq('id',compId).eq('user_id',currentUser.id);
     competences=competences.filter(c=>c.id!==compId);
     Object.keys(notes).forEach(k=>{if(Number(k.split('_')[1])===compId) delete notes[k];});
-    await quickRefresh(); showToast("Compétence supprimée ✓");
+    await quickRefresh();
+    showToast("Compétence supprimée ✓");
   } catch(e){showToast("Erreur suppression ⚠️");}
 }
 async function deleteMatiere(matiere) {
@@ -802,7 +804,8 @@ async function deleteMatiere(matiere) {
     }
     competences=competences.filter(c=>c.matiere!==matiere);
     const s=new Set(ids); Object.keys(notes).forEach(k=>{if(s.has(Number(k.split('_')[1]))) delete notes[k];});
-    await quickRefresh(); showToast("Matière supprimée ✓");
+    await quickRefresh();
+    showToast("Matière supprimée ✓");
   } catch(e){showToast("Erreur suppression ⚠️");}
 }
 async function deleteEleve(eleveId) {
@@ -942,7 +945,7 @@ function renderEditGrille() {
           <span style="font-size:0.62rem;color:var(--muted);margin-left:6px;background:var(--bg);padding:1px 6px;border-radius:4px">${c.periode}</span>
           ${c.date_eval ? `<span style="font-size:0.6rem;color:var(--muted)"> · ${c.date_eval}</span>` : ''}
         </div>
-        <button onclick="deleteCompetence(${c.id});setTimeout(renderEditGrille,300)" class="icon-btn danger" style="width:26px;height:26px;font-size:0.7rem">🗑️</button>
+        <button onclick="deleteCompetence(${c.id})" class="icon-btn danger" style="width:26px;height:26px;font-size:0.7rem">🗑️</button>
       </div>`;
     });
     html += '</div>';
