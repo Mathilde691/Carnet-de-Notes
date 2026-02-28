@@ -479,7 +479,10 @@ th.th-comp { background: var(--dark2); color: rgba(255,255,255,0.75); padding: 8
         <button type="button" class="genre-btn selected-unknown" id="dup-p5" onclick="toggleDupPeriode('P5')">P5</button>
       </div>
     </div>
-    <p style="font-size:0.72rem;color:var(--muted);margin-top:4px;margin-bottom:4px">La matière sera créée (vide, sans compétences) dans chaque période sélectionnée.</p>
+    <div class="form-group" style="margin-top:10px">
+      <label class="form-label">Compétence à ajouter <span style="font-weight:500;text-transform:none;letter-spacing:0;color:#94a3b8">(optionnel)</span></label>
+      <input class="form-input" id="dup-comp" type="text" placeholder="Laisser vide = matière seule" autocomplete="off" autocapitalize="sentences">
+    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modalMatiere');openModal('modalMenu')">← Retour</button>
       <button class="btn-save" onclick="dupMatiere()">Dupliquer</button>
@@ -900,6 +903,7 @@ function openDupMatiere() {
     customs.map(m=>`<option>${m}</option>`).join('') +
     `<option>Autre</option>`;
   document.getElementById('dupMatiereCustomWrap').classList.add('hidden');
+  document.getElementById('dup-comp').value = '';
   // Reset périodes — tout sélectionné
   dupPeriodes = new Set(['P1','P2','P3','P4','P5']);
   ['P1','P2','P3','P4','P5'].forEach(p => {
@@ -943,19 +947,42 @@ async function dupMatiere() {
     return;
   }
 
+  const nomComp = (document.getElementById('dup-comp')?.value || '').trim();
+
   try {
-    // Créer une compétence placeholder vide pour "marquer" la matière dans la période
-    // On utilise un nom spécial qu'on masquera à l'affichage
-    const rows = aCreer.map(p => ({
-      matiere, nom: '(matière)', periode: p, date_eval: null, user_id: currentUser.id
-    }));
+    let rows;
+    if (nomComp) {
+      // Avec compétence : éviter les doublons comp+matière+période
+      const existComp = new Set(
+        competences.filter(c=>c.matiere===matiere && c.nom===nomComp).map(c=>c.periode)
+      );
+      const aCreerComp = aCreer.filter(p=>!existComp.has(p));
+      if (aCreerComp.length === 0) {
+        showToast('Cette compétence existe déjà dans toutes les périodes sélectionnées');
+        return;
+      }
+      rows = aCreerComp.map(p => ({ matiere, nom: nomComp, periode: p, date_eval: null, user_id: currentUser.id }));
+    } else {
+      // Sans compétence : créer une entrée placeholder "(matière)" uniquement
+      // si la matière n'a aucune compétence dans cette période
+      const existMat = new Set(competences.filter(c=>c.matiere===matiere).map(c=>c.periode));
+      const aCreerMat = aCreer.filter(p=>!existMat.has(p));
+      if (aCreerMat.length === 0) {
+        showToast('Cette matière existe déjà dans toutes les périodes sélectionnées');
+        return;
+      }
+      rows = aCreerMat.map(p => ({ matiere, nom: '(matière)', periode: p, date_eval: null, user_id: currentUser.id }));
+    }
+
     const { data, error } = await db.from('competences').insert(rows).select();
     if(error) throw error;
     competences.push(...data);
     closeModal('modalMatiere');
+    document.getElementById('dup-comp').value = '';
     await quickRefresh();
     refreshMatiereSelect();
-    showToast(`"${matiere}" dupliquée sur ${aCreer.join(', ')} ✓`);
+    const msg = nomComp ? `"${nomComp}" ajoutée sur ${aCreer.join(', ')} ✓` : `"${matiere}" dupliquée sur ${aCreer.join(', ')} ✓`;
+    showToast(msg);
   } catch(e) { showToast("Erreur lors de la duplication ⚠️"); console.error(e); }
 }
 
